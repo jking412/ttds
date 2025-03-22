@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# 发送GET请求到localhost:8080
+# 拿到响应和状态码
+response=$(curl -s http://localhost:8080/startContainer)
+
+# 打印响应内容
+echo "$response"

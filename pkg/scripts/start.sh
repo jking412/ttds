@@ -1,0 +1,1 @@
+sudo docker run --name os -v /home/skynesser/code/system_call:/root -p 8000:8080 -p 22:22 -d os:ssh

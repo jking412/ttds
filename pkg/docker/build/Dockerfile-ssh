@@ -1,0 +1,11 @@
+FROM os:base
+
+# 安装openssh
+RUN apt install openssh-server -y
+
+# 暴露端口
+EXPOSE 22
+
+# 创建用户skynesser
+RUN useradd skynesser && \
+    echo "skynesser:123456" | chpasswd
