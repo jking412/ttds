@@ -20,6 +20,7 @@ func main() {
 
 	// 初始化数据库
 	db.InitDB()
+	db.InitRedis()
 
 	// 插入模拟数据
 	utils.InsertMockData()

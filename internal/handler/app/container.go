@@ -1,6 +1,7 @@
 package app
 
 import (
+	"awesomeProject/pkg/db"
 	"awesomeProject/pkg/docker"
 	"context"
 	"github.com/docker/docker/api/types/container"
@@ -9,6 +10,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
 var cli = docker.DockerClient
@@ -18,6 +20,13 @@ const (
 )
 
 func StartContainer(c *gin.Context) {
+
+	exists := db.RDB.Exists(context.Background(), "container:ssh")
+	val, err := exists.Result()
+	if val == 1 {
+		c.JSON(200, gin.H{"message": "Container created and started successfully(cache)"})
+		return
+	}
 
 	options := filters.NewArgs()
 	options.Add("name", "os")
@@ -83,6 +92,7 @@ func StartContainer(c *gin.Context) {
 		}
 
 		err = cli.ContainerStart(context.Background(), resp.ID, container.StartOptions{})
+
 		if err != nil {
 			// 打印err
 			logrus.Errorf("failed to start container: %v", err)
@@ -98,6 +108,13 @@ func StartContainer(c *gin.Context) {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
+	}
+
+	cmd := db.RDB.Set(context.Background(), "container:ssh", 1, time.Minute)
+	if cmd.Err() != nil {
+		logrus.Errorf("failed to set cache: %v", cmd.Err())
+		c.JSON(500, gin.H{"error": cmd.Err()})
+		return
 	}
 
 	c.JSON(200, gin.H{"message": "Container created and started successfully"})

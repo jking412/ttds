@@ -3,9 +3,13 @@ package app
 import (
 	"awesomeProject/internal/model"
 	"awesomeProject/internal/repository"
+	"awesomeProject/pkg/db"
+	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 // CreateCourseHandler 创建课程的处理函数
@@ -37,7 +41,20 @@ func GetCourseByIDHandler(c *gin.Context) {
 
 // GetAllCoursesHandler 获取所有课程信息的处理函数
 func GetAllCoursesHandler(c *gin.Context) {
-	courses, err := repository.GetAllCourses()
+
+	var courses []model.Course
+	// 从缓存中获取课程信息
+	coursesStr, err := db.RDB.Get(context.Background(), "courses").Result()
+	if err == nil {
+		err := json.Unmarshal([]byte(coursesStr), &courses)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		c.JSON(http.StatusOK, courses)
+		return
+	}
+
+	courses, err = repository.GetAllCourses()
 
 	// 获取课程信息中所有章节的小节信息
 	for i := range courses {
@@ -60,6 +77,17 @@ func GetAllCoursesHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	// 先json.Marshal
+	coursesJSON, err := json.Marshal(courses)
+
+	// 设置缓存
+	cmd := db.RDB.Set(context.Background(), "courses", coursesJSON, time.Minute)
+	if err := cmd.Err(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, courses)
 }
 
