@@ -3,7 +3,6 @@ package main
 import (
 	"awesomeProject/internal/handler"
 	"awesomeProject/pkg/db"
-	"awesomeProject/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -23,7 +22,7 @@ func main() {
 	db.InitRedis()
 
 	// 插入模拟数据
-	utils.InsertMockData()
+	//utils.InsertMockData()
 
 	// 创建 Gin 引擎
 	r := gin.Default()
