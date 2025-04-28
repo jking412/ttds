@@ -18,7 +18,6 @@ func RegisterRoutes(r *gin.Engine) {
 	// 课程相关路由
 	courseGroup := r.Group("/courses")
 	{
-		courseGroup.POST("", app.CreateCourseHandler)
 		courseGroup.GET("/:id", app.GetCourseByIDHandler)
 		courseGroup.GET("", app.GetAllCoursesHandler)
 	}
@@ -27,37 +26,5 @@ func RegisterRoutes(r *gin.Engine) {
 	chapterGroup := r.Group("/chapters")
 	{
 		chapterGroup.POST("", app.CreateChapterHandler)
-		chapterGroup.GET("/:id", app.GetChapterByIDHandler)
-		chapterGroup.GET("/course/:courseID", app.GetChaptersByCourseIDHandler)
-	}
-
-	// 小节相关路由
-	sectionGroup := r.Group("/sections")
-	{
-		sectionGroup.POST("", app.CreateSectionHandler)
-		sectionGroup.GET("/:id", app.GetSectionByIDHandler)
-		sectionGroup.GET("/chapter/:chapterID", app.GetSectionsByChapterIDHandler)
-	}
-
-	// 用户相关路由
-	userGroup := r.Group("/users")
-	{
-		userGroup.POST("/", app.CreateUserHandler)
-		userGroup.GET("/:id", app.GetUserByIDHandler)
-	}
-
-	// 用户小节状态相关路由
-	userSectionStatusGroup := r.Group("/user-section-status")
-	{
-		userSectionStatusGroup.POST("", app.CreateUserSectionStatusHandler)
-		userSectionStatusGroup.GET("/user/:userID/section/:sectionID", app.GetUserSectionStatusByUserAndSectionIDHandler)
-		userSectionStatusGroup.PUT("/user/:userID/section/:sectionID", app.UpdateUserSectionStatusHandler)
-	}
-
-	// 课程参考书籍相关路由
-	courseReferenceBookGroup := r.Group("/course-reference-books")
-	{
-		courseReferenceBookGroup.POST("", app.CreateCourseReferenceBookHandler)
-		courseReferenceBookGroup.GET("/course/:courseID", app.GetCourseReferenceBooksByCourseIDHandler)
 	}
 }

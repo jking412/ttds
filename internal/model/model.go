@@ -2,6 +2,7 @@ package model
 
 import (
 	"gorm.io/gorm"
+	"time"
 )
 
 // Course 课程模型
@@ -52,4 +53,14 @@ type CourseReferenceBook struct {
 	CourseID  uint   `gorm:"index"`
 	BookTitle string `gorm:"type:varchar(255)"`
 	Author    string `gorm:"type:varchar(255)"`
+}
+
+// SectionRecord 当用户提交答案时，记录用户提交情况
+// SectionID: 小节ID
+// Success: 是否提交成功
+// time: 提交时间
+type SectionRecord struct {
+	SectionID uint `gorm:"index"`
+	Success   bool
+	Time      time.Time
 }

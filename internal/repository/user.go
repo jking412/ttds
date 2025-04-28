@@ -5,6 +5,10 @@ import (
 	"awesomeProject/pkg/db"
 )
 
+//func AnswerCheck(sectionID uint) error {
+//
+//}
+
 // CreateUser 创建一个新的用户
 func CreateUser(user *model.User) error {
 	return db.DB.Create(user).Error

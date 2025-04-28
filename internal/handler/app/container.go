@@ -32,7 +32,7 @@ func StartContainer(c *gin.Context) {
 	options.Add("name", "os")
 
 	// Check if a container named "os" already exists
-	containers, err := cli.ContainerList(context.Background(), container.ListOptions{Filters: options})
+	containers, err := cli.ContainerList(context.Background(), container.ListOptions{Filters: options, All: true})
 
 	if err != nil {
 		// 打印err
