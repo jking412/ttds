@@ -12,6 +12,8 @@ func RegisterRoutes(r *gin.Engine) {
 	// 注册中间件
 	r.Use(middleware.CORS())
 
+	r.GET("/hello", helloHandler)
+
 	r.GET("/startContainer", app.StartContainer)
 	r.GET("/check", app.CheckAnswer)
 
@@ -27,4 +29,10 @@ func RegisterRoutes(r *gin.Engine) {
 	{
 		chapterGroup.POST("", app.CreateChapterHandler)
 	}
+}
+
+func helloHandler(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"message": "Hello, World!",
+	})
 }

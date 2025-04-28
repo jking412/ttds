@@ -16,6 +16,4 @@ redis:
 
 jwt:
   secret: ttds
-  refresh_secret: ttds-refresh
-  expires: 10m
-  refresh_expires: 24h
+  expires: 240h

@@ -34,6 +34,12 @@ func InitDB() {
 		&model.User{},
 		&model.UserSectionStatus{},
 		&model.CourseReferenceBook{},
+		&model.ContainerTemplate{},
+		&model.ContainerInstance{},
+		&model.ContainerScript{},
+		// old
+		&model.CourseReferenceBook{},
+		&model.SectionRecord{},
 	)
 	if err != nil {
 		logrus.Fatalf("failed to migrate database: %v", err)
