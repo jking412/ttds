@@ -1,6 +1,6 @@
 server:
   address: :8080
-database:
+db:
   driver: mysql
   username: root
   password: 123456
@@ -19,3 +19,8 @@ jwt:
   refresh_secret: ttds-refresh
   expires: 10m
   refresh_expires: 24h
+
+log:
+  level: debug
+  path: ./logs
+  filename: ttds.log

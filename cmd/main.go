@@ -3,6 +3,7 @@ package main
 import (
 	"awesomeProject/internal/handler"
 	"awesomeProject/pkg/db"
+	"awesomeProject/pkg/log"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -16,6 +17,9 @@ func main() {
 	if err := viper.ReadInConfig(); err != nil {
 		logrus.Fatalf("failed to read config: %v", err)
 	}
+
+	// 设置日志级别
+	log.InitLog()
 
 	// 初始化数据库
 	db.InitDB(db.GenerateDsnFromConfig())

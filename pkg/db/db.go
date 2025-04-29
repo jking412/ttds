@@ -46,7 +46,7 @@ func GenerateDsnFromConfig() string {
 		viper.GetString("db.password"),
 		viper.GetString("db.host"),
 		viper.GetString("db.port"),
-		viper.GetString("db.database"),
+		viper.GetString("db.dbname"),
 	)
 	return dsn
 }
