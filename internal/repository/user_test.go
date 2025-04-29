@@ -18,7 +18,7 @@ func TestMain(m *testing.M) {
 		"ttds",
 	)
 	db.InitDB(dsn)
-
+	NewUserRepository(db.DB)
 	// 执行测试
 	m.Run()
 }
@@ -28,7 +28,7 @@ func TestCreateUser(t *testing.T) {
 	user := &model.User{Username: "testuser", Password: "password123"}
 
 	// Execute
-	err := CreateUser(user)
+	err := userRepositoryInstance.CreateUser(user)
 
 	// Verify
 	if err != nil {
@@ -44,7 +44,7 @@ func TestCreateUser(t *testing.T) {
 	}
 
 	// Expect error
-	err = CreateUser(&model.User{Username: "testuser", Password: longPassword})
+	err = userRepositoryInstance.CreateUser(&model.User{Username: "testuser", Password: longPassword})
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
@@ -56,10 +56,10 @@ func TestCreateUser(t *testing.T) {
 func TestGetUserByID(t *testing.T) {
 	// Setup
 	user := &model.User{Username: "testuser", Password: "password123"}
-	CreateUser(user)
+	userRepositoryInstance.CreateUser(user)
 
 	// Execute
-	result, err := GetUserByID(user.ID)
+	result, err := userRepositoryInstance.GetUserByID(user.ID)
 
 	// Verify
 	if err != nil {
@@ -76,10 +76,10 @@ func TestGetUserByID(t *testing.T) {
 func TestGetUserByUsername(t *testing.T) {
 	// Setup
 	user := &model.User{Username: "testuser", Password: "password123"}
-	CreateUser(user)
+	userRepositoryInstance.CreateUser(user)
 
 	// Execute
-	result, err := GetUserByUsername(user.Username)
+	result, err := userRepositoryInstance.GetUserByUsername(user.Username)
 
 	// Verify
 	if err != nil {
@@ -96,10 +96,10 @@ func TestGetUserByUsername(t *testing.T) {
 func TestGetUserByEmail(t *testing.T) {
 	// Setup
 	user := &model.User{Email: "test@example.com", Password: "password123"}
-	CreateUser(user)
+	userRepositoryInstance.CreateUser(user)
 
 	// Execute
-	result, err := GetUserByEmail(user.Email)
+	result, err := userRepositoryInstance.GetUserByEmail(user.Email)
 
 	// Verify
 	if err != nil {
@@ -119,7 +119,7 @@ func TestVerifyPassword(t *testing.T) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	// Execute
-	err := VerifyPassword(string(hashedPassword), password)
+	err := userRepositoryInstance.VerifyPassword(string(hashedPassword), password)
 
 	// Verify
 	if err != nil {
@@ -130,10 +130,10 @@ func TestVerifyPassword(t *testing.T) {
 func TestCheckUserExists(t *testing.T) {
 	// Setup
 	user := &model.User{Username: "testuser", Email: "test@example.com", Password: "password123"}
-	CreateUser(user)
+	userRepositoryInstance.CreateUser(user)
 
 	// Execute
-	exists, err := CheckUserExists(user.Username, user.Email)
+	exists, err := userRepositoryInstance.CheckUserExists(user.Username, user.Email)
 
 	// Verify
 	if err != nil {

@@ -11,10 +11,10 @@ import (
 	"strconv"
 )
 
-var userService *usecase.UserServiceImpl
+var userService usecase.UserService
 
-func init() {
-	userService = &usecase.UserServiceImpl{}
+func initUserService() {
+	userService = usecase.NewUserService()
 }
 
 const bzImage = "/home/skynesser/code/system_call/linux-6.2/arch/x86/boot/bzImage"

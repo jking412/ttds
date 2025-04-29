@@ -4,53 +4,81 @@ import (
 	"awesomeProject/internal/model"
 	"awesomeProject/pkg/db"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+	"sync"
 )
 
-//func AnswerCheck(sectionID uint) error {
-//
-//}
+var (
+	userRepositoryInstance UserRepository
+	once                   sync.Once
+
+	_ UserRepository = (*UserRepositoryImpl)(nil)
+)
+
+// UserRepository 定义用户仓库接口
+type UserRepository interface {
+	CreateUser(user *model.User) error
+	GetUserByID(id uint) (*model.User, error)
+	GetUserByUsername(username string) (*model.User, error)
+	GetUserByEmail(email string) (*model.User, error)
+	VerifyPassword(hashedPassword, password string) error
+	CheckUserExists(username, email string) (bool, error)
+}
+
+type UserRepositoryImpl struct {
+	DB *gorm.DB
+}
+
+func NewUserRepository(db *gorm.DB) UserRepository {
+	once.Do(func() {
+		userRepositoryInstance = &UserRepositoryImpl{
+			DB: db,
+		}
+	})
+	return userRepositoryInstance
+}
 
 // CreateUser 创建一个新的用户
-func CreateUser(user *model.User) error {
+func (r *UserRepositoryImpl) CreateUser(user *model.User) error {
 	// 对密码进行哈希处理
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 	user.Password = string(hashedPassword)
-	return db.DB.Create(user).Error
+	return r.DB.Create(user).Error
 }
 
 // GetUserByID 根据用户 ID 获取用户信息
-func GetUserByID(id uint) (*model.User, error) {
+func (r *UserRepositoryImpl) GetUserByID(id uint) (*model.User, error) {
 	var user model.User
-	result := db.DB.Preload("SectionStatus").First(&user, id)
+	result := r.DB.Preload("SectionStatus").First(&user, id)
 	return &user, result.Error
 }
 
 // GetUserByUsername 根据用户名获取用户信息
-func GetUserByUsername(username string) (*model.User, error) {
+func (r *UserRepositoryImpl) GetUserByUsername(username string) (*model.User, error) {
 	var user model.User
-	result := db.DB.Where("username = ?", username).First(&user)
+	result := r.DB.Where("username = ?", username).First(&user)
 	return &user, result.Error
 }
 
 // GetUserByEmail 根据邮箱获取用户信息
-func GetUserByEmail(email string) (*model.User, error) {
+func (r *UserRepositoryImpl) GetUserByEmail(email string) (*model.User, error) {
 	var user model.User
-	result := db.DB.Where("email = ?", email).First(&user)
+	result := r.DB.Where("email = ?", email).First(&user)
 	return &user, result.Error
 }
 
 // VerifyPassword 验证用户密码
-func VerifyPassword(hashedPassword, password string) error {
+func (r *UserRepositoryImpl) VerifyPassword(hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
 // CheckUserExists 检查用户名或邮箱是否已存在
-func CheckUserExists(username, email string) (bool, error) {
+func (r *UserRepositoryImpl) CheckUserExists(username, email string) (bool, error) {
 	var count int64
-	result := db.DB.Model(&model.User{}).Where("username = ? OR email = ?", username, email).Count(&count)
+	result := r.DB.Model(&model.User{}).Where("username = ? OR email = ?", username, email).Count(&count)
 	if result.Error != nil {
 		return false, result.Error
 	}

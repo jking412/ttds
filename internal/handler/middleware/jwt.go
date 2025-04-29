@@ -8,6 +8,9 @@ import (
 )
 
 func JWTAuthMiddleware() gin.HandlerFunc {
+
+	jwtManager := jwt.NewJWTManager()
+
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -17,7 +20,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		claims, err := jwt.ValidateToken(tokenString)
+		claims, err := jwtManager.ValidateToken(tokenString)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid token"})
 			c.Abort()
@@ -31,13 +34,16 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 
 // RefreshTokenHandler 处理刷新请求
 func RefreshTokenHandler(c *gin.Context) {
+
+	jwtManager := jwt.NewJWTManager()
+
 	refreshToken := c.GetHeader("Refresh-Token")
 	if refreshToken == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Refresh Token is missing"})
 		return
 	}
 
-	newAccessToken, err := jwt.RefreshAccessToken(refreshToken)
+	newAccessToken, err := jwtManager.RefreshAccessToken(refreshToken)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid refresh token"})
 		return

@@ -27,7 +27,7 @@ func InitLog() {
 	}
 
 	// 设置日志格式（比如使用 JSON 格式）
-	logrus.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetFormatter(&logrus.TextFormatter{})
 
 	logOutputPath := logPath + "/" + fileName
 

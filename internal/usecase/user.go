@@ -3,8 +3,17 @@ package usecase
 import (
 	"awesomeProject/internal/model"
 	"awesomeProject/internal/repository"
+	"awesomeProject/pkg/db"
 	"awesomeProject/pkg/jwt"
 	"errors"
+	"sync"
+)
+
+var (
+	userServiceInstance UserService
+	once                sync.Once
+
+	_ UserService = (*UserServiceImpl)(nil)
 )
 
 // UserService 用户服务接口
@@ -16,12 +25,25 @@ type UserService interface {
 }
 
 // UserServiceImpl 用户服务实现
-type UserServiceImpl struct{}
+type UserServiceImpl struct {
+	UserRepository repository.UserRepository
+	jwtManager     jwt.JWTManager
+}
+
+func NewUserService() UserService {
+	once.Do(func() {
+		userServiceInstance = &UserServiceImpl{
+			UserRepository: repository.NewUserRepository(db.DB),
+			jwtManager:     jwt.NewJWTManager(),
+		}
+	})
+	return userServiceInstance
+}
 
 // Register 用户注册
 func (s *UserServiceImpl) Register(user *model.User) (string, string, error) {
 	// 检查用户名和邮箱是否已存在
-	exists, err := repository.CheckUserExists(user.Username, user.Email)
+	exists, err := s.UserRepository.CheckUserExists(user.Username, user.Email)
 	if err != nil {
 		return "", "", err
 	}
@@ -31,18 +53,18 @@ func (s *UserServiceImpl) Register(user *model.User) (string, string, error) {
 	}
 
 	// 创建新用户
-	if err := repository.CreateUser(user); err != nil {
+	if err := s.UserRepository.CreateUser(user); err != nil {
 		return "", "", err
 	}
 
 	// 生成JWT令牌
 	userID := int(user.ID)
-	accessToken, err := jwt.GenerateAccessToken(userID)
+	accessToken, err := s.jwtManager.GenerateAccessToken(userID)
 	if err != nil {
 		return "", "", err
 	}
 
-	refreshToken, err := jwt.GenerateRefreshToken(userID)
+	refreshToken, err := s.jwtManager.GenerateRefreshToken(userID)
 	if err != nil {
 		return "", "", err
 	}
@@ -53,24 +75,24 @@ func (s *UserServiceImpl) Register(user *model.User) (string, string, error) {
 // Login 用户登录
 func (s *UserServiceImpl) Login(username, password string) (string, string, error) {
 	// 根据用户名查找用户
-	user, err := repository.GetUserByUsername(username)
+	user, err := s.UserRepository.GetUserByUsername(username)
 	if err != nil {
 		return "", "", errors.New("用户名或密码错误")
 	}
 
 	// 验证密码
-	if err := repository.VerifyPassword(user.Password, password); err != nil {
+	if err := s.UserRepository.VerifyPassword(user.Password, password); err != nil {
 		return "", "", errors.New("用户名或密码错误")
 	}
 
 	// 生成JWT令牌
 	userID := int(user.ID)
-	accessToken, err := jwt.GenerateAccessToken(userID)
+	accessToken, err := s.jwtManager.GenerateAccessToken(userID)
 	if err != nil {
 		return "", "", err
 	}
 
-	refreshToken, err := jwt.GenerateRefreshToken(userID)
+	refreshToken, err := s.jwtManager.GenerateRefreshToken(userID)
 	if err != nil {
 		return "", "", err
 	}
@@ -85,7 +107,7 @@ func (s *UserServiceImpl) Logout() error {
 }
 
 func (s *UserServiceImpl) GetCurrentUser(userID uint) (*model.User, error) {
-	user, err := repository.GetUserByID(userID)
+	user, err := s.UserRepository.GetUserByID(userID)
 	if err != nil {
 		return nil, err
 	}
