@@ -3,11 +3,19 @@ package app
 import (
 	"awesomeProject/internal/model"
 	"awesomeProject/internal/repository"
+	"awesomeProject/internal/usecase"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
+	"strconv"
 )
+
+var userService *usecase.UserServiceImpl
+
+func init() {
+	userService = &usecase.UserServiceImpl{}
+}
 
 const bzImage = "/home/skynesser/code/system_call/linux-6.2/arch/x86/boot/bzImage"
 
@@ -41,79 +49,87 @@ func CheckAnswer(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"answer": "true"})
 }
 
-// CreateUserHandler 创建用户的处理函数
-func CreateUserHandler(c *gin.Context) {
+// RegisterHandler 用户注册处理函数
+func RegisterHandler(c *gin.Context) {
 	var user model.User
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的请求数据", "details": err.Error()})
 		return
 	}
-	if err := repository.CreateUser(&user); err != nil {
+
+	accessToken, refreshToken, err := userService.Register(&user)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, user)
+
+	user.Password = ""
+	c.JSON(http.StatusCreated, gin.H{
+		"user":          user,
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"message":       "注册成功",
+	})
 }
 
-// GetUserByIDHandler 根据用户 ID 获取用户信息的处理函数
-func GetUserByIDHandler(c *gin.Context) {
-	id := c.Param("id")
-	var userID uint
-	fmt.Sscanf(id, "%d", &userID)
-	user, err := repository.GetUserByID(userID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+// LoginHandler 用户登录处理函数
+func LoginHandler(c *gin.Context) {
+	type LoginRequest struct {
+		Username string `json:"username" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}
+
+	var req LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的请求数据", "details": err.Error()})
 		return
 	}
+
+	accessToken, refreshToken, err := userService.Login(req.Username, req.Password)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"message":       "登录成功",
+	})
+}
+
+// LogoutHandler 用户注销处理函数
+func LogoutHandler(c *gin.Context) {
+	if err := userService.Logout(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "注销成功",
+	})
+}
+
+// GetCurrentUserHandler 获取当前登录用户信息的处理函数
+func GetCurrentUserHandler(c *gin.Context) {
+	userIDInterface, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "未授权"})
+		return
+	}
+
+	userID, err := strconv.ParseUint(fmt.Sprintf("%v", userIDInterface), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "服务器错误", "details": err.Error()})
+		return
+	}
+
+	user, err := userService.GetCurrentUser(uint(userID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "用户不存在", "details": err.Error()})
+		return
+	}
+
+	user.Password = ""
 	c.JSON(http.StatusOK, user)
-}
-
-// CreateUserSectionStatusHandler 创建用户小节完成状态记录的处理函数
-func CreateUserSectionStatusHandler(c *gin.Context) {
-	var status model.UserSectionStatus
-	if err := c.ShouldBindJSON(&status); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	if err := repository.CreateUserSectionStatus(&status); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusCreated, status)
-}
-
-// GetUserSectionStatusByUserAndSectionIDHandler 根据用户 ID 和小节 ID 获取用户小节完成状态的处理函数
-func GetUserSectionStatusByUserAndSectionIDHandler(c *gin.Context) {
-	userIDStr := c.Param("userID")
-	sectionIDStr := c.Param("sectionID")
-	var userID, sectionID uint
-	fmt.Sscanf(userIDStr, "%d", &userID)
-	fmt.Sscanf(sectionIDStr, "%d", &sectionID)
-	status, err := repository.GetUserSectionStatusByUserAndSectionID(userID, sectionID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, status)
-}
-
-// UpdateUserSectionStatusHandler 更新用户小节完成状态的处理函数
-func UpdateUserSectionStatusHandler(c *gin.Context) {
-	userIDStr := c.Param("userID")
-	sectionIDStr := c.Param("sectionID")
-	var userID, sectionID uint
-	fmt.Sscanf(userIDStr, "%d", &userID)
-	fmt.Sscanf(sectionIDStr, "%d", &sectionID)
-	var status model.UserSectionStatus
-	if err := c.ShouldBindJSON(&status); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	status.UserID = userID
-	status.SectionID = sectionID
-	if err := repository.UpdateUserSectionStatus(&status); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, status)
 }

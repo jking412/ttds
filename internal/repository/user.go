@@ -3,6 +3,7 @@ package repository
 import (
 	"awesomeProject/internal/model"
 	"awesomeProject/pkg/db"
+	"golang.org/x/crypto/bcrypt"
 )
 
 //func AnswerCheck(sectionID uint) error {
@@ -11,6 +12,12 @@ import (
 
 // CreateUser 创建一个新的用户
 func CreateUser(user *model.User) error {
+	// 对密码进行哈希处理
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	user.Password = string(hashedPassword)
 	return db.DB.Create(user).Error
 }
 
@@ -21,16 +28,33 @@ func GetUserByID(id uint) (*model.User, error) {
 	return &user, result.Error
 }
 
-// CreateUserSectionStatus 创建用户小节完成状态记录
-func CreateUserSectionStatus(status *model.UserSectionStatus) error {
-	return db.DB.Create(status).Error
+// GetUserByUsername 根据用户名获取用户信息
+func GetUserByUsername(username string) (*model.User, error) {
+	var user model.User
+	result := db.DB.Where("username = ?", username).First(&user)
+	return &user, result.Error
 }
 
-// GetUserSectionStatusByUserAndSectionID 根据用户 ID 和小节 ID 获取用户小节完成状态
-func GetUserSectionStatusByUserAndSectionID(userID, sectionID uint) (*model.UserSectionStatus, error) {
-	var status model.UserSectionStatus
-	result := db.DB.Where("user_id = ? AND section_id = ?", userID, sectionID).First(&status)
-	return &status, result.Error
+// GetUserByEmail 根据邮箱获取用户信息
+func GetUserByEmail(email string) (*model.User, error) {
+	var user model.User
+	result := db.DB.Where("email = ?", email).First(&user)
+	return &user, result.Error
+}
+
+// VerifyPassword 验证用户密码
+func VerifyPassword(hashedPassword, password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+}
+
+// CheckUserExists 检查用户名或邮箱是否已存在
+func CheckUserExists(username, email string) (bool, error) {
+	var count int64
+	result := db.DB.Model(&model.User{}).Where("username = ? OR email = ?", username, email).Count(&count)
+	if result.Error != nil {
+		return false, result.Error
+	}
+	return count > 0, nil
 }
 
 // UpdateUserSectionStatus 更新用户小节完成状态

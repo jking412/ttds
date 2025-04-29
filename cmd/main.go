@@ -18,7 +18,7 @@ func main() {
 	}
 
 	// 初始化数据库
-	db.InitDB()
+	db.InitDB(db.GenerateDsnFromConfig())
 	db.InitRedis()
 
 	// 插入模拟数据
@@ -32,11 +32,11 @@ func main() {
 
 	// 启动服务器
 	logrus.Infof("starting server on %s", viper.GetString("server.address"))
-	//if err := r.Run(viper.GetString("server.address")); err != nil {
-	//	logrus.Fatalf("failed to start server: %v", err)
-	//}
-	// https 启动
-	if err := r.RunTLS(viper.GetString("server.address"), "cert\\my.crt", "cert\\my.key"); err != nil {
+	if err := r.Run(viper.GetString("server.address")); err != nil {
 		logrus.Fatalf("failed to start server: %v", err)
 	}
+	// https 启动
+	//if err := r.RunTLS(viper.GetString("server.address"), "cert\\my.crt", "cert\\my.key"); err != nil {
+	//	logrus.Fatalf("failed to start server: %v", err)
+	//}
 }

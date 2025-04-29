@@ -11,14 +11,7 @@ import (
 
 var DB *gorm.DB
 
-func InitDB() {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		viper.GetString("database.username"),
-		viper.GetString("database.password"),
-		viper.GetString("database.host"),
-		viper.GetInt("database.port"),
-		viper.GetString("database.dbname"),
-	)
+func InitDB(dsn string) {
 	var err error
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -45,4 +38,15 @@ func InitDB() {
 		logrus.Fatalf("failed to migrate database: %v", err)
 	}
 	logrus.Info("database migrated successfully")
+}
+
+func GenerateDsnFromConfig() string {
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		viper.GetString("db.username"),
+		viper.GetString("db.password"),
+		viper.GetString("db.host"),
+		viper.GetString("db.port"),
+		viper.GetString("db.database"),
+	)
+	return dsn
 }
