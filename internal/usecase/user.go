@@ -27,7 +27,7 @@ type UserService interface {
 // UserServiceImpl 用户服务实现
 type UserServiceImpl struct {
 	UserRepository repository.UserRepository
-	jwtManager     jwt.JWTManager
+	jwtManager     jwt.Manager
 }
 
 func NewUserService() UserService {

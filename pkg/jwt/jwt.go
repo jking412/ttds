@@ -1,19 +1,19 @@
 package jwt
 
 import (
+	"awesomeProject/pkg/configs"
 	"fmt"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"sync"
 	"time"
 )
 
 var (
-	jwtManagerInstance JWTManager
+	jwtManagerInstance Manager
 	once               sync.Once
 
-	_ JWTManager = (*jwtManager)(nil)
+	_ Manager = (*jwtManager)(nil)
 )
 
 const (
@@ -27,7 +27,7 @@ const (
 	defaultRefreshSecretKey = "ttds"
 )
 
-type JWTManager interface {
+type Manager interface {
 	GenerateAccessToken(userID int) (string, error)
 	GenerateRefreshToken(userID int) (string, error)
 	ValidateToken(tokenStr string) (*Claims, error)
@@ -41,60 +41,10 @@ type jwtManager struct {
 	refreshExpiry time.Duration
 }
 
-type Claims struct {
-	UserID int `json:"user_id"`
-	jwt.RegisteredClaims
-}
-
-func NewJWTManager() JWTManager {
+func NewJWTManager() Manager {
 	once.Do(func() {
-		secretKey := viper.GetString("jwt_secret_key")
-		refreshKey := viper.GetString("jwt.refresh_secret")
-
-		if len(secretKey) == 0 {
-			logrus.Warn("secret key is empty, setting default key")
-			secretKey = defaultSecretKey
-		}
-
-		if len(refreshKey) == 0 {
-			logrus.Warn("refresh key is empty, setting default key")
-			refreshKey = defaultRefreshSecretKey
-		}
-
-		secretExpiryStr := viper.GetString("jwt.expires")
-		refreshExpiryStr := viper.GetString("jwt.refresh_expires")
-
-		var secretExpiry, refreshExpiry time.Duration
-		var err error
-
-		if len(secretExpiryStr) == 0 {
-			logrus.Warn("secret expiry is invalid, setting default value")
-			secretExpiry = defaultExpirationTime
-		}
-
-		if len(refreshExpiryStr) == 0 {
-			logrus.Warn("refresh expiry is invalid, setting default value")
-			refreshExpiry = defaultRefreshExpirationTime
-		}
-
-		secretExpiry, err = time.ParseDuration(secretExpiryStr)
-		if err != nil {
-			logrus.Warn("secret expiry is invalid, setting default value")
-			secretExpiry = defaultExpirationTime
-		}
-
-		refreshExpiry, err = time.ParseDuration(refreshExpiryStr)
-		if err != nil {
-			logrus.Warn("refresh expiry is invalid, setting default value")
-			refreshExpiry = defaultRefreshExpirationTime
-		}
-
-		jwtManagerInstance = &jwtManager{
-			secretKey:     []byte(secretKey),
-			refreshKey:    []byte(refreshKey),
-			secretExpiry:  secretExpiry,
-			refreshExpiry: refreshExpiry,
-		}
+		// 从配置文件中读取 JWT 配置
+		jwtManagerInstance = parseJWTConfig()
 	})
 
 	return jwtManagerInstance
@@ -104,18 +54,13 @@ func NewJWTManager() JWTManager {
 func (j *jwtManager) GenerateAccessToken(userID int) (string, error) {
 
 	// 创建自定义的 Claims
-	claims := &Claims{
-		UserID: userID,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.secretExpiry)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-	}
+	claims := generateClaims(userID, j.secretExpiry)
 
 	// 创建新的 Token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// 使用密钥签名并生成 token 字符串
+	// ""的 secretKey 会导致签名失败
 	tokenString, err := token.SignedString(j.secretKey)
 	if err != nil {
 		return "", err
@@ -128,13 +73,7 @@ func (j *jwtManager) GenerateAccessToken(userID int) (string, error) {
 func (j *jwtManager) GenerateRefreshToken(userID int) (string, error) {
 
 	// 创建自定义的 Claims
-	claims := &Claims{
-		UserID: userID,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.refreshExpiry)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-	}
+	claims := generateClaims(userID, j.refreshExpiry)
 
 	// 创建新的 Token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -205,4 +144,33 @@ func (j *jwtManager) RefreshAccessToken(refreshTokenStr string) (string, error) 
 
 	// 生成新的 Access Token
 	return j.GenerateAccessToken(claims.UserID)
+}
+
+func parseJWTConfig() *jwtManager {
+	secretKey := configs.GetConfig().JWT.Secret
+	refreshKey := configs.GetConfig().JWT.RefreshSecret
+	secretExpiryStr := configs.GetConfig().JWT.Expires
+	refreshExpiryStr := configs.GetConfig().JWT.RefreshExpires
+
+	var secretExpiry, refreshExpiry time.Duration
+	var err error
+
+	secretExpiry, err = time.ParseDuration(secretExpiryStr)
+	if err != nil {
+		logrus.Warn("secret expiry is invalid, setting default value")
+		secretExpiry = defaultExpirationTime
+	}
+
+	refreshExpiry, err = time.ParseDuration(refreshExpiryStr)
+	if err != nil {
+		logrus.Warn("refresh expiry is invalid, setting default value")
+		refreshExpiry = defaultRefreshExpirationTime
+	}
+
+	return &jwtManager{
+		secretKey:     []byte(secretKey),
+		refreshKey:    []byte(refreshKey),
+		secretExpiry:  secretExpiry,
+		refreshExpiry: refreshExpiry,
+	}
 }

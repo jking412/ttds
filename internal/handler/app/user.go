@@ -64,7 +64,7 @@ func RegisterHandler(c *gin.Context) {
 	}
 
 	user.Password = ""
-	c.JSON(http.StatusCreated, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"user":          user,
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
@@ -74,10 +74,6 @@ func RegisterHandler(c *gin.Context) {
 
 // LoginHandler 用户登录处理函数
 func LoginHandler(c *gin.Context) {
-	type LoginRequest struct {
-		Username string `json:"username" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
 
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

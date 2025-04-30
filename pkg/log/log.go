@@ -1,17 +1,20 @@
 package log
 
 import (
+	"awesomeProject/pkg/configs"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"io"
 	"os"
 )
 
-func InitLog() {
+func init() {
 
-	level := viper.GetString("log.level")
-	logPath := viper.GetString("log.path")
-	fileName := viper.GetString("log.filename")
+}
+
+func InitLog() {
+	level := configs.GetConfig().Log.Level
+	logPath := configs.GetConfig().Log.Path
+	fileName := configs.GetConfig().Log.Filename
 
 	switch level {
 	case "debug":

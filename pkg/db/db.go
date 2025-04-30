@@ -2,9 +2,9 @@ package db
 
 import (
 	"awesomeProject/internal/model"
+	"awesomeProject/pkg/configs"
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -42,11 +42,11 @@ func InitDB(dsn string) {
 
 func GenerateDsnFromConfig() string {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		viper.GetString("db.username"),
-		viper.GetString("db.password"),
-		viper.GetString("db.host"),
-		viper.GetString("db.port"),
-		viper.GetString("db.dbname"),
+		configs.GetConfig().DB.Username,
+		configs.GetConfig().DB.Password,
+		configs.GetConfig().DB.Host,
+		configs.GetConfig().DB.Port,
+		configs.GetConfig().DB.DBName,
 	)
 	return dsn
 }

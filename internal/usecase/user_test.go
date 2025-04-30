@@ -49,7 +49,7 @@ type MockJWTGenerator struct {
 	mock.Mock
 }
 
-//type JWTManager interface {
+//type Manager interface {
 //	GenerateAccessToken(userID int) (string, error)
 //	GenerateRefreshToken(userID int) (string, error)
 //	ValidateToken(tokenStr string) (*Claims, error)

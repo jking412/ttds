@@ -17,10 +17,10 @@ redis:
 jwt:
   secret: ttds
   refresh_secret: ttds-refresh
-  expires: 10m
+  expires: 1m
   refresh_expires: 24h
 
 log:
-  level: debug
+  level: info
   path: ./logs
   filename: ttds.log
