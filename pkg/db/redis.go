@@ -5,10 +5,10 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-var RDB *redis.Client
+var Cache *redis.Client
 
 func InitRedis() {
-	RDB = redis.NewClient(&redis.Options{
+	Cache = redis.NewClient(&redis.Options{
 		Addr:     configs.GetConfig().Redis.Host + ":" + configs.GetConfig().Redis.Port,
 		Password: configs.GetConfig().Redis.Password,
 		DB:       configs.GetConfig().Redis.DB,

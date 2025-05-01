@@ -14,6 +14,8 @@ func init() {
 	defaultConfigFuncList = append(defaultConfigFuncList, setLogConfig)
 }
 
+// AppConfig
+// viper使用mapstructure来解析配置文件
 type AppConfig struct {
 	Server struct {
 		Address string `mapstructure:"address"`

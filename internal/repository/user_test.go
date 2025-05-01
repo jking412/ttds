@@ -3,28 +3,13 @@ package repository
 import (
 	"awesomeProject/internal/model"
 	"awesomeProject/pkg/db"
-	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"testing"
 )
 
-func TestMain(m *testing.M) {
-	// 初始化数据库
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		"root",
-		"123456",
-		"localhost",
-		3306,
-		"ttds",
-	)
-	db.InitDB(dsn)
-	NewUserRepository(db.DB)
-	// 执行测试
-	m.Run()
-}
-
 func TestCreateUser(t *testing.T) {
 	// Setup
+	// TODO: 采用随机生成的用户名和密码，避免重复造成的测试失败
 	user := &model.User{Username: "testuser", Password: "password123"}
 
 	// Execute

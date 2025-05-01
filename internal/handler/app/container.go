@@ -21,7 +21,7 @@ const (
 
 func StartContainer(c *gin.Context) {
 
-	exists := db.RDB.Exists(context.Background(), "container:ssh")
+	exists := db.Cache.Exists(context.Background(), "container:ssh")
 	val, err := exists.Result()
 	if val == 1 {
 		c.JSON(200, gin.H{"message": "Container created and started successfully(cache)"})
@@ -110,7 +110,7 @@ func StartContainer(c *gin.Context) {
 		}
 	}
 
-	cmd := db.RDB.Set(context.Background(), "container:ssh", 1, time.Minute)
+	cmd := db.Cache.Set(context.Background(), "container:ssh", 1, time.Minute)
 	if cmd.Err() != nil {
 		logrus.Errorf("failed to set cache: %v", cmd.Err())
 		c.JSON(500, gin.H{"error": cmd.Err()})

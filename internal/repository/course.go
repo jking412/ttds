@@ -2,36 +2,80 @@ package repository
 
 import (
 	"awesomeProject/internal/model"
-	"awesomeProject/pkg/db"
+	"gorm.io/gorm"
+	"sync"
 )
 
-// CreateCourse 创建一个新的课程
-func CreateCourse(course *model.Course) error {
-	return db.DB.Create(course).Error
+var (
+	courseRepositoryInstance CourseRepository
+	courseSyncOnce           sync.Once
+
+	_ CourseRepository = (*CourseRepositoryImpl)(nil)
+)
+
+// CourseRepository 定义课程仓库接口
+type CourseRepository interface {
+	GetCourseByID(id uint) (*model.Course, error)
+	GetAllCourses() ([]model.Course, error)
+	GetCourseReferencesByCourseID(courseID uint) ([]model.CourseReference, error)
+	GetCourseStatusByCourseID(userID, courseID uint) ([]model.UserSectionStatus, error)
+}
+
+type CourseRepositoryImpl struct {
+	DB *gorm.DB
+}
+
+func NewCourseRepository(db *gorm.DB) CourseRepository {
+	courseSyncOnce.Do(func() {
+		courseRepositoryInstance = &CourseRepositoryImpl{
+			DB: db,
+		}
+	})
+	return courseRepositoryInstance
 }
 
 // GetCourseByID 根据课程 ID 获取课程信息
-func GetCourseByID(id uint) (*model.Course, error) {
+func (r *CourseRepositoryImpl) GetCourseByID(id uint) (*model.Course, error) {
 	var course model.Course
-	result := db.DB.Preload("Chapters").Preload("ReferenceBooks").First(&course, id)
+	result := r.DB.Preload("Chapters.Sections").Preload("References").First(&course, id)
 	return &course, result.Error
 }
 
 // GetAllCourses 获取所有课程信息
-func GetAllCourses() ([]model.Course, error) {
+func (r *CourseRepositoryImpl) GetAllCourses() ([]model.Course, error) {
 	var courses []model.Course
-	result := db.DB.Preload("Chapters").Preload("ReferenceBooks").Find(&courses)
+	result := r.DB.Find(&courses)
 	return courses, result.Error
 }
 
-// CreateCourseReferenceBook 创建课程参考书籍记录
-func CreateCourseReferenceBook(book *model.CourseReferenceBook) error {
-	return db.DB.Create(book).Error
+// GetCourseReferencesByCourseID 根据课程 ID 获取所有参考资料信息
+func (r *CourseRepositoryImpl) GetCourseReferencesByCourseID(courseID uint) ([]model.CourseReference, error) {
+	var references []model.CourseReference
+	result := r.DB.Where("course_id = ?", courseID).Find(&references)
+	return references, result.Error
 }
 
-// GetCourseReferenceBooksByCourseID 根据课程 ID 获取所有参考书籍信息
-func GetCourseReferenceBooksByCourseID(courseID uint) ([]model.CourseReferenceBook, error) {
-	var books []model.CourseReferenceBook
-	result := db.DB.Where("course_id = ?", courseID).Find(&books)
-	return books, result.Error
+// GetCourseStatusByCourseID 根据课程ID获取用户学习状态
+func (r *CourseRepositoryImpl) GetCourseStatusByCourseID(userID, courseID uint) ([]model.UserSectionStatus, error) {
+	// 1. 查询该课程下所有章节的小节ID
+	var sectionIDs []uint
+	err := r.DB.Table("sections").
+		Select("sections.id").
+		Joins("JOIN chapters ON sections.chapter_id = chapters.id").
+		Where("chapters.course_id = ?", courseID).
+		Scan(&sectionIDs).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(sectionIDs) == 0 {
+		return []model.UserSectionStatus{}, nil
+	}
+
+	// 2. 查询user_section_status表中对应的学习状态
+	var statuses []model.UserSectionStatus
+	err = r.DB.Where("user_id = ? AND section_id IN ?", userID, sectionIDs).Find(&statuses).Error
+	if err != nil {
+		return nil, err
+	}
+	return statuses, nil
 }

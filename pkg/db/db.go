@@ -11,9 +11,9 @@ import (
 
 var DB *gorm.DB
 
-func InitDB(dsn string) {
+func InitDB(dsn string, config *gorm.Config) {
 	var err error
-	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(mysql.Open(dsn), config)
 	if err != nil {
 		logrus.Fatalf("failed to connect database: %v", err)
 	}
@@ -26,7 +26,7 @@ func InitDB(dsn string) {
 		&model.Section{},
 		&model.User{},
 		&model.UserSectionStatus{},
-		&model.CourseReferenceBook{},
+		&model.CourseReference{},
 		&model.ContainerTemplate{},
 		&model.ContainerInstance{},
 		&model.ContainerScript{},

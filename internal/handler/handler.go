@@ -33,11 +33,10 @@ func RegisterRoutes(r *gin.Engine) {
 	}
 
 	// 课程相关路由
-	courseGroup := r.Group("/courses")
-	{
-		courseGroup.GET("/:id", app.GetCourseByIDHandler)
-		courseGroup.GET("", app.GetAllCoursesHandler)
-	}
+	//courseGroup := r.Group("/api/v1/courses")
+	//{
+	//
+	//}
 
 	// 章节相关路由
 	chapterGroup := r.Group("/chapters")

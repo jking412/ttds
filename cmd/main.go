@@ -5,8 +5,12 @@ import (
 	"awesomeProject/pkg/configs"
 	"awesomeProject/pkg/db"
 	"awesomeProject/pkg/log"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+	"net/http"
+	_ "net/http/pprof"
 )
 
 func main() {
@@ -19,7 +23,7 @@ func main() {
 	log.InitLog()
 
 	// 初始化数据库
-	db.InitDB(db.GenerateDsnFromConfig())
+	db.InitDB(db.GenerateDsnFromConfig(), &gorm.Config{})
 	db.InitRedis()
 
 	// 插入模拟数据
@@ -30,6 +34,10 @@ func main() {
 
 	// 注册路由
 	handler.RegisterRoutes(r)
+
+	go func() {
+		fmt.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	// 启动服务器
 	logrus.Infof("starting server on %s", configs.GetConfig().Server.Address)
