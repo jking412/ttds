@@ -29,12 +29,14 @@ type CourseService interface {
 // CourseServiceImpl 课程服务实现
 type CourseServiceImpl struct {
 	CourseRepository repository.CourseRepository
+	cache            db.Cache
 }
 
 func NewCourseService() CourseService {
 	courseSyncOnce.Do(func() {
 		courseServiceInstance = &CourseServiceImpl{
 			CourseRepository: repository.NewCourseRepository(db.DB),
+			cache:            db.NewCache(),
 		}
 	})
 	return courseServiceInstance
@@ -49,7 +51,7 @@ func (s *CourseServiceImpl) GetCourseStatus(userID, courseID uint) ([]model.User
 func (s *CourseServiceImpl) GetAllCourses() ([]model.Course, error) {
 	// 尝试从缓存获取
 	var courses []model.Course
-	coursesStr, err := db.Cache.Get(context.Background(), "courses").Result()
+	coursesStr, err := s.cache.Get(context.Background(), "courses")
 	if err == nil {
 		err := json.Unmarshal([]byte(coursesStr), &courses)
 		if err == nil {
@@ -66,7 +68,9 @@ func (s *CourseServiceImpl) GetAllCourses() ([]model.Course, error) {
 	// 设置缓存
 	coursesJSON, err := json.Marshal(courses)
 	if err == nil {
-		db.Cache.Set(context.Background(), "courses", coursesJSON, time.Minute)
+		if err = s.cache.Set(context.Background(), "courses", coursesJSON, time.Minute); err != nil {
+			return nil, err
+		}
 	}
 
 	return courses, nil

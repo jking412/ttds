@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"sync"
 )
@@ -56,7 +57,7 @@ var (
 	once sync.Once
 )
 
-func InitConfig() error {
+func Init() error {
 	var err error
 	once.Do(func() {
 		newViper := viper.New()
@@ -67,7 +68,7 @@ func InitConfig() error {
 
 		err = newViper.ReadInConfig()
 		if err != nil {
-			return
+			logrus.Warn("Error reading config: ", err)
 		}
 
 		// bind 到结构体

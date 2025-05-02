@@ -17,7 +17,6 @@ func RegisterRoutes(r *gin.Engine) {
 	r.GET("/hello", helloHandler)
 	r.GET("/refresh", middleware.RefreshTokenHandler)
 
-	r.GET("/startContainer", app.StartContainer)
 	r.GET("/check", app.CheckAnswer)
 
 	// 用户认证相关路由
@@ -32,17 +31,15 @@ func RegisterRoutes(r *gin.Engine) {
 		auth.GET("/user", app.GetCurrentUserHandler) // 获取当前用户信息
 	}
 
-	// 课程相关路由
-	//courseGroup := r.Group("/api/v1/courses")
-	//{
-	//
-	//}
-
-	// 章节相关路由
-	chapterGroup := r.Group("/chapters")
+	// 课程相关路由 (根据API文档，这些路由不需要认证)
+	courseGroup := r.Group("/api/v1/courses")
 	{
-		chapterGroup.POST("", app.CreateChapterHandler)
+		courseGroup.GET("", app.GetAllCoursesHandler)                             // 获取所有课程
+		courseGroup.GET("/:course_id", app.GetCourseByIDHandler)                  // 获取特定课程信息
+		courseGroup.GET("/:course_id/references", app.GetCourseReferencesHandler) // 获取课程参考书
+		courseGroup.GET("/experiment-status", app.GetCourseExperimentStatusHandler)
 	}
+
 }
 
 func helloHandler(c *gin.Context) {

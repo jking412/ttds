@@ -15,7 +15,7 @@ import (
 
 func main() {
 	// 加载配置
-	if err := configs.InitConfig(); err != nil {
+	if err := configs.Init(); err != nil {
 		logrus.Fatalf("failed to read config: %v", err)
 	}
 
@@ -24,7 +24,6 @@ func main() {
 
 	// 初始化数据库
 	db.InitDB(db.GenerateDsnFromConfig(), &gorm.Config{})
-	db.InitRedis()
 
 	// 插入模拟数据
 	//utils.InsertMockData()
