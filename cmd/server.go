@@ -2,6 +2,7 @@ package main
 
 import (
 	"awesomeProject/internal/handler"
+	"awesomeProject/internal/task"
 	"awesomeProject/pkg/configs"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -32,6 +33,11 @@ var serverCmd = &cobra.Command{
 				fmt.Println(http.ListenAndServe("localhost:6060", nil))
 			}()
 		}
+
+		// 启动TaskServer和TaskClient
+		go task.InitTaskServer()
+		client := task.InitTaskClient()
+		defer client.AsynqClient.Close()
 
 		// 启动服务器
 		logrus.Infof("starting server on %s", configs.GetConfig().Server.Address)
