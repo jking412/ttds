@@ -4,7 +4,7 @@ import (
 	"awesomeProject/pkg/docker"
 )
 
-var cli = docker.DockerClient
+var cli = container.DockerClient
 
 //const (
 //	systemCallDir = "/home/skynesser/code/system_call"

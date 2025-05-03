@@ -76,6 +76,8 @@ type ContainerTemplate struct {
 	DefaultCmd  string `gorm:"type:varchar(255)"`          // 容器默认启动命令，可选
 	Volumes     string `gorm:"type:text"`                  // 挂载的卷，可以是JSON数组表示多个卷
 	Ports       string `gorm:"type:text"`                  // 暴露的端口，JSON数组表示多个端口
+	Envs        string `gorm:"type:text"`                  // 环境变量，JSON数组表示多个环境变量
+	SUDOPass    string `gorm:"type:varchar(255)"`          // SUDO密码（如果有的话）
 }
 
 // ContainerInstance 容器实例模型
@@ -86,9 +88,11 @@ type ContainerInstance struct {
 	TemplateID  uint      `gorm:"not null;index"`             // 使用的模板ID
 	ContainerID string    `gorm:"type:varchar(255);not null"` // 容器实际ID（Docker/K8S管理用）
 	Status      string    `gorm:"type:varchar(50);not null"`  // 状态：Pending / Running / Stopped / Error
+	Name        string    `gorm:"type:varchar(100);not null"` // 容器名称，便于用户识别
 	StartAt     time.Time `gorm:"type:timestamp"`             // 启动时间
 	EndAt       time.Time `gorm:"type:timestamp"`             // 结束/销毁时间
 	IPAddress   string    `gorm:"type:varchar(100)"`          // 容器分配的IP地址（如果有的话）
+	Token       string    `gorm:"type:varchar(255)"`          // 容器访问令牌（如果有的话）
 }
 
 // ContainerScript 容器脚本模型
@@ -98,30 +102,6 @@ type ContainerScript struct {
 	Content        string `gorm:"type:text;not null"`        // 脚本内容
 	ExpectedOutput string `gorm:"type:text"`                 // 期望输出，比如包含某个文件
 	MatchType      string `gorm:"type:varchar(50);not null"` // 匹配方式：contains / equals / regex
-	Timeout        uint   `gorm:"default:30"`                // 超时时间（秒），默认30秒
+	Timeout        uint   `gorm:"default:10"`                // 超时时间（秒），默认10秒
 	Description    string `gorm:"type:varchar(255)"`         // 检测说明，可选
-}
-
-// 以下是原有的模型，保留在下方
-
-// 原有的 User 模型
-// type OldUser struct {
-// 	gorm.Model
-// 	Name          string `gorm:"type:varchar(255)"`
-// 	SectionStatus []UserSectionStatus
-// }
-
-// 原有的 CourseReferenceBook 课程参考书籍模型
-type CourseReferenceBook struct {
-	gorm.Model
-	CourseID  uint   `gorm:"index"`
-	BookTitle string `gorm:"type:varchar(255)"`
-	Author    string `gorm:"type:varchar(255)"`
-}
-
-// SectionRecord 当用户提交答案时，记录用户提交情况
-type SectionRecord struct {
-	SectionID uint `gorm:"index"`
-	Success   bool
-	Time      time.Time
 }

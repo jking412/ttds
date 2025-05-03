@@ -30,9 +30,6 @@ func InitDB(dsn string, config *gorm.Config) {
 		&model.ContainerTemplate{},
 		&model.ContainerInstance{},
 		&model.ContainerScript{},
-		// old
-		&model.CourseReferenceBook{},
-		&model.SectionRecord{},
 	)
 	if err != nil {
 		logrus.Fatalf("failed to migrate database: %v", err)
