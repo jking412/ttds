@@ -3,109 +3,33 @@ package utils
 import (
 	"awesomeProject/internal/model"
 	"awesomeProject/pkg/db"
-	"github.com/go-faker/faker/v4"
+	"fmt"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
+	"math/rand"
+	"time"
 )
 
-func InsertMockData() {
-	// 查询course表中是否有数据
-	var count int64
-	if err := db.DB.Model(&model.Course{}).Count(&count).Error; err != nil {
-		logrus.Fatalf("failed to count courses: %v", err)
-	}
-
-	if count > 0 {
-		logrus.Info("course table already has data, skipping mock data insertion")
-		return
-	}
-
-	// 插入模拟课程数据
-	course := model.Course{
-		Title:       "操作系统",
-		Description: "操作系统是计算机系统的核心，它管理计算机的硬件资源和软件资源，为用户提供一个良好的运行环境。",
-	}
-
-	courses := []model.Course{course, {
-		Title:       "计算机网络",
-		Description: "计算机网络是计算机系统之间的通信系统，它使得计算机能够相互通信和共享资源。",
-	}}
-
-	chapter := model.Chapter{
-		Title: "添加系统调用",
-	}
-
-	chapters := []model.Chapter{chapter, {
-		Title: "编译内核",
-	}}
-
-	section := model.Section{
-		Title:           "编译内核",
-		TaskDescription: "在这个小节中，你将学习如何编译内核",
-		ContainerInfo:   "os:base",
-	}
-
-	sections := []model.Section{section, {
-		Title:           "编译内核",
-		TaskDescription: "在这个小节中，你将学习如何编译内核",
-		ContainerInfo:   "os:base",
-	}}
-
-	user := model.User{
-		Name: "admin",
-	}
-
-	// 插入模拟课程数据
-	if err := db.DB.Create(&courses).Error; err != nil {
-		logrus.Fatalf("failed to insert courses: %v", err)
-	}
-
-	// 插入模拟章节数据
-	for i := range chapters {
-		chapters[i].CourseID = courses[0].ID
-	}
-	if err := db.DB.Create(&chapters).Error; err != nil {
-		logrus.Fatalf("failed to insert chapters: %v", err)
-	}
-
-	// 插入模拟小节数据
-	for j := range sections {
-		sections[j].ChapterID = chapters[0].ID
-	}
-	if err := db.DB.Create(&sections).Error; err != nil {
-		logrus.Fatalf("failed to insert sections: %v", err)
-	}
-
+func MockCourseData() {
 	// 插入模拟用户数据
+	password, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+	user := model.User{
+		Username: "apitestuser",
+		Email:    randomString(10, 50) + "@example.com",
+		Password: string(password),
+	}
+
 	if err := db.DB.Create(&user).Error; err != nil {
 		logrus.Fatalf("failed to insert mock user data: %v", err)
 	}
 
-	// 插入模拟用户Section完成情况数据
-	userSectionStatus := []model.UserSectionStatus{
-		{
-			UserID:    user.ID,
-			SectionID: sections[0].ID,
-			Completed: false,
-		},
-		{
-			UserID:    user.ID,
-			SectionID: sections[1].ID,
-			Completed: false,
-		},
-	}
-
-	if err := db.DB.Create(&userSectionStatus).Error; err != nil {
-		logrus.Fatalf("failed to insert mock user section status data: %v", err)
-	}
-
-}
-
-func InsertMockData1() {
 	// 插入模拟课程数据
 	for i := 0; i < 5; i++ {
-		var course model.Course
-		if err := faker.FakeData(&course); err != nil {
-			logrus.Fatalf("failed to generate mock course data: %v", err)
+		course := model.Course{
+			Title:       randomString(10, 255),
+			Description: randomText(50, 500),
+			CoverImage:  fmt.Sprintf("images/%s.jpg", randomString(5, 50)),
+			Category:    randomString(5, 100),
 		}
 		if err := db.DB.Create(&course).Error; err != nil {
 			logrus.Fatalf("failed to insert mock course data: %v", err)
@@ -113,61 +37,57 @@ func InsertMockData1() {
 
 		// 插入模拟章节数据
 		for j := 0; j < 3; j++ {
-			var chapter model.Chapter
-			if err := faker.FakeData(&chapter); err != nil {
-				logrus.Fatalf("failed to generate mock chapter data: %v", err)
+			chapter := model.Chapter{
+				Title:       randomString(10, 255),
+				Description: randomText(50, 500),
+				Order:       uint(rand.Uint32()),
+				CourseID:    course.ID,
 			}
-			chapter.CourseID = course.ID
 			if err := db.DB.Create(&chapter).Error; err != nil {
 				logrus.Fatalf("failed to insert mock chapter data: %v", err)
 			}
 
 			// 插入模拟小节数据
 			for k := 0; k < 2; k++ {
-				var section model.Section
-				if err := faker.FakeData(&section); err != nil {
-					logrus.Fatalf("failed to generate mock section data: %v", err)
+				section := model.Section{
+					Title:     randomString(10, 255),
+					Content:   randomText(100, 2000),
+					Order:     uint(rand.Uint32()),
+					ChapterID: chapter.ID,
 				}
-				section.ChapterID = chapter.ID
 				if err := db.DB.Create(&section).Error; err != nil {
 					logrus.Fatalf("failed to insert mock section data: %v", err)
 				}
 			}
 		}
 
-		// 插入模拟参考书籍数据
+		// 插入模拟课程参考资料数据
 		for l := 0; l < 2; l++ {
-			var book model.CourseReferenceBook
-			if err := faker.FakeData(&book); err != nil {
-				logrus.Fatalf("failed to generate mock book data: %v", err)
+			reference := model.CourseReference{
+				CourseID:    course.ID,
+				Title:       randomString(10, 255),
+				Type:        randomReferenceType(),
+				URL:         fmt.Sprintf("https://example.com/%s", randomString(5, 50)),
+				Description: randomText(50, 500),
 			}
-			book.CourseID = course.ID
-			if err := db.DB.Create(&book).Error; err != nil {
-				logrus.Fatalf("failed to insert mock book data: %v", err)
+			if err := db.DB.Create(&reference).Error; err != nil {
+				logrus.Fatalf("failed to insert mock reference data: %v", err)
 			}
 		}
 	}
 
-	// 插入模拟用户数据
-	for m := 0; m < 5; m++ {
-		var user model.User
-		if err := faker.FakeData(&user); err != nil {
-			logrus.Fatalf("failed to generate mock user data: %v", err)
-		}
-		if err := db.DB.Create(&user).Error; err != nil {
-			logrus.Fatalf("failed to insert mock user data: %v", err)
-		}
-
-		// 插入模拟用户小节状态数据
-		sections := []model.Section{}
-		db.DB.Find(&sections)
+	// 插入模拟用户小节状态数据
+	users := []model.User{}
+	db.DB.Find(&users)
+	sections := []model.Section{}
+	db.DB.Find(&sections)
+	for _, user := range users {
 		for _, section := range sections {
-			var status model.UserSectionStatus
-			if err := faker.FakeData(&status); err != nil {
-				logrus.Fatalf("failed to generate mock user section status data: %v", err)
+			status := model.UserSectionStatus{
+				UserID:    user.ID,
+				SectionID: section.ID,
+				Completed: rand.Intn(2) == 1,
 			}
-			status.UserID = user.ID
-			status.SectionID = section.ID
 			if err := db.DB.Create(&status).Error; err != nil {
 				logrus.Fatalf("failed to insert mock user section status data: %v", err)
 			}
@@ -175,4 +95,82 @@ func InsertMockData1() {
 	}
 
 	logrus.Info("mock data inserted successfully")
+}
+
+// Mock data generators for each table
+
+func mockCourses() map[string]interface{} {
+	return map[string]interface{}{
+		"title":       randomString(10, 255),
+		"description": randomText(50, 500),
+		"cover_image": fmt.Sprintf("images/%s.jpg", randomString(5, 50)),
+		"category":    randomString(5, 100),
+	}
+}
+
+func mockChapters(courseID uint64) map[string]interface{} {
+	return map[string]interface{}{
+		"title":       randomString(10, 255),
+		"description": randomText(50, 500),
+		"order":       rand.Uint64(),
+		"course_id":   courseID,
+	}
+}
+
+func mockSections(chapterID uint64) map[string]interface{} {
+	return map[string]interface{}{
+		"title":      randomString(10, 255),
+		"content":    randomText(100, 2000),
+		"order":      rand.Uint64(),
+		"chapter_id": chapterID,
+	}
+}
+
+func mockCourseReferences(courseID uint64) map[string]interface{} {
+	return map[string]interface{}{
+		"course_id":   courseID,
+		"title":       randomString(10, 255),
+		"type":        randomReferenceType(),
+		"url":         fmt.Sprintf("https://example.com/%s", randomString(5, 500)),
+		"description": randomText(50, 500),
+	}
+}
+
+func mockCourseReferenceBooks(courseID uint64) map[string]interface{} {
+	return map[string]interface{}{
+		"course_id":  courseID,
+		"book_title": randomString(10, 255),
+		"author":     randomString(5, 255),
+	}
+}
+
+// Helper functions
+
+func randomString(minLen, maxLen int) string {
+	length := minLen + rand.Intn(maxLen-minLen+1)
+	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(result)
+}
+
+func randomText(minLen, maxLen int) string {
+	length := minLen + rand.Intn(maxLen-minLen+1)
+	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ,.\n"
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(result)
+}
+
+func randomReferenceType() string {
+	types := []string{"video", "article", "paper", "website", "book"}
+	return types[rand.Intn(len(types))]
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }

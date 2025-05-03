@@ -26,7 +26,7 @@ func main() {
 	db.InitDB(db.GenerateDsnFromConfig(), &gorm.Config{})
 
 	// 插入模拟数据
-	//utils.InsertMockData()
+	//utils.MockCourseData()
 
 	// 创建 Gin 引擎
 	r := gin.Default()

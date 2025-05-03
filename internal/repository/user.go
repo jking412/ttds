@@ -41,6 +41,7 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 // CreateUser 创建一个新的用户
 func (r *UserRepositoryImpl) CreateUser(user *model.User) error {
 	// 对密码进行哈希处理
+	// TODO: 加密处理应该迁移到usercase层
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err

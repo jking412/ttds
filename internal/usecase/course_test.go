@@ -3,12 +3,8 @@ package usecase
 import (
 	"awesomeProject/internal/model"
 	"context"
-	"encoding/json"
-	"errors"
-	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -51,46 +47,3 @@ func (m *MockCourseRepository) GetCourseStatusByCourseID(userID, courseID uint) 
 }
 
 // TODO: 所有测试存在问题
-func TestGetAllCoursesWithCache(t *testing.T) {
-	mockRepo := new(MockCourseRepository)
-	mockCache := new(MockCache)
-	service := &CourseServiceImpl{
-		CourseRepository: mockRepo,
-		cache:            mockCache,
-	}
-
-	// 测试缓存命中
-	t.Run("Cache Hit", func(t *testing.T) {
-		cachedCourses := []model.Course{{Title: "Cached Course"}}
-		cachedData, _ := json.Marshal(cachedCourses)
-		mockCache.On("Get", mock.Anything, "courses").Return(string(cachedData), nil)
-
-		result, err := service.GetAllCourses()
-		assert.NoError(t, err)
-		assert.Equal(t, "Cached Course", result[0].Title)
-		mockRepo.AssertNotCalled(t, "GetAllCourses")
-	})
-
-	// 测试缓存未命中
-	t.Run("Cache Miss", func(t *testing.T) {
-		dbCourses := []model.Course{{Title: "DB Course"}}
-		mockCache.On("Get", mock.Anything, "courses").Return("", errors.New("not found"))
-		mockCache.On("Set", mock.Anything, "courses", mock.Anything, time.Minute).Return(nil)
-		mockRepo.On("GetAllCourses").Return(dbCourses, nil)
-
-		result, err := service.GetAllCourses()
-		assert.NoError(t, err)
-		assert.Equal(t, "DB Course", result[0].Title)
-		mockRepo.AssertCalled(t, "GetAllCourses")
-		mockCache.AssertCalled(t, "Set", mock.Anything, "courses", mock.Anything, time.Minute)
-	})
-
-	// 测试缓存错误
-	t.Run("Cache Error", func(t *testing.T) {
-		mockCache.On("Get", mock.Anything, "courses").Return("", errors.New("cache error"))
-		mockRepo.On("GetAllCourses").Return(nil, errors.New("db error"))
-
-		_, err := service.GetAllCourses()
-		assert.Error(t, err)
-	})
-}

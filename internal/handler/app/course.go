@@ -159,13 +159,14 @@ func GetCourseExperimentStatusHandler(c *gin.Context) {
 	}
 
 	courseIDStr := c.Query("course_id")
-	courseID, err := strconv.ParseUint(courseIDStr, 10, 64)
+	courseID, err := strconv.ParseUint(courseIDStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Invalid course ID format"})
 		return
 	}
 
-	status, err := courseService.GetCourseStatus(uint(userID.(uint)), uint(courseID))
+	// TODO: 丑陋的判定，需要修改jwt set的user_id类型
+	status, err := courseService.GetCourseStatus(uint(userID.(int)), uint(courseID))
 	if err != nil {
 		if err.Error() == "record not found" {
 			c.JSON(http.StatusNotFound, gin.H{"status": "error", "message": "Course experiment status not found"})

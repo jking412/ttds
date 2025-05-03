@@ -108,7 +108,7 @@ func LogoutHandler(c *gin.Context) {
 
 // GetCurrentUserHandler 获取当前登录用户信息的处理函数
 func GetCurrentUserHandler(c *gin.Context) {
-	userIDInterface, exists := c.Get("userID")
+	userIDInterface, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "未授权"})
 		return

@@ -32,7 +32,7 @@ func RegisterRoutes(r *gin.Engine) {
 	}
 
 	// 课程相关路由 (根据API文档，这些路由不需要认证)
-	courseGroup := r.Group("/api/v1/courses")
+	courseGroup := auth.Group("/courses")
 	{
 		courseGroup.GET("", app.GetAllCoursesHandler)                             // 获取所有课程
 		courseGroup.GET("/:course_id", app.GetCourseByIDHandler)                  // 获取特定课程信息
