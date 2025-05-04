@@ -3,9 +3,11 @@ package task
 import (
 	"awesomeProject/internal/model"
 	"awesomeProject/pkg/configs"
+	"awesomeProject/pkg/db"
 	"context"
 	"fmt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"testing"
 	"time"
 )
@@ -13,6 +15,16 @@ import (
 func TestContainerCreateTask(t *testing.T) {
 	// TODO: configs应该要能够接收测试环境的配置文件，不过目前至少可以读取默认配置
 	configs.Init()
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		"root",
+		"123456",
+		"localhost",
+		3306,
+		"ttds",
+	)
+	db.InitDB(dsn, &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent), // 👈 打印所有 SQL
+	})
 	InitTaskClient()
 	go InitTaskServer()
 	defer client.AsynqClient.Close()
@@ -65,53 +77,3 @@ func TestContainerCreateTask(t *testing.T) {
 		}
 	}
 }
-
-//func TestContainerCreateTask_InvalidPayload(t *testing.T) {
-//	// 创建无效负载
-//	invalidPayload := []byte("{invalid}")
-//	task := asynq.NewTask(TypeContainerCreate, invalidPayload)
-//
-//	// 创建处理器
-//	processor := &ContainerProcessor{
-//		containerManager: container.NewManager(),
-//		messageManager:          messageManager.NewChannelManager(),
-//	}
-//
-//	// 测试处理无效负载
-//	err := processor.handleContainerCreateTask(context.Background(), task)
-//	if err == nil {
-//		t.Error("Expected error for invalid payload, got nil")
-//	}
-//}
-//
-//func TestContainerCreateTask_ContainerCreationFailed(t *testing.T) {
-//	// 准备测试数据
-//	Template := model.ContainerTemplate{
-//		Name:        "Invalid Template",
-//		Description: "Will fail creation",
-//		Image:       "invalid-image",
-//	}
-//	payload := ContainerCreatePayload{
-//		Template: Template,
-//		UserID:   1,
-//	}
-//
-//	// 创建处理器
-//	processor := &ContainerProcessor{
-//		containerManager: container.NewManager(),
-//		messageManager:          messageManager.NewChannelManager(),
-//	}
-//
-//	// 创建测试任务
-//	taskPayload, err := json.Marshal(payload)
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//	task := asynq.NewTask(TypeContainerCreate, taskPayload)
-//
-//	// 测试容器创建失败
-//	err = processor.handleContainerCreateTask(context.Background(), task)
-//	if err == nil {
-//		t.Error("Expected error for container creation failure, got nil")
-//	}
-//}

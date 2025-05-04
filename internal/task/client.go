@@ -21,6 +21,10 @@ type Client struct {
 	message     message.Manager
 }
 
+func GetTaskClient() *Client {
+	return client
+}
+
 func InitTaskClient() *Client {
 	redisAddr := configs.GetConfig().Redis.Host + ":" + configs.GetConfig().Redis.Port
 	return newTaskClient(redisAddr)
@@ -29,8 +33,9 @@ func InitTaskClient() *Client {
 func newTaskClient(redisAddr string) *Client {
 	once.Do(func() {
 		channelCancel = make(map[string]context.CancelFunc)
+		asynqClient := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
 		client = &Client{
-			AsynqClient: asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr}),
+			AsynqClient: asynqClient,
 			message:     message.NewChannelManager(),
 		}
 	})
@@ -44,12 +49,13 @@ func (c *Client) EnqueueContainerCreateTask(p ContainerCreatePayload) error {
 	}
 
 	task := asynq.NewTask(TypeContainerCreate, payload)
-	_, err = c.AsynqClient.Enqueue(task, asynq.MaxRetry(3), asynq.Queue("default"))
+	_, err = c.AsynqClient.Enqueue(task, asynq.MaxRetry(1), asynq.Queue("default"))
 	if err != nil {
 		return err
 	}
 
 	channelID := fmt.Sprintf("%d:%d", p.UserID, p.Template.ID)
+	// TODO: 考虑ch的泄露问题
 	ch, err := c.message.CreateChannel(channelID)
 	if err != nil {
 		return err
@@ -58,7 +64,6 @@ func (c *Client) EnqueueContainerCreateTask(p ContainerCreatePayload) error {
 	go func() {
 		ticker := time.NewTicker(time.Millisecond * 500)
 		defer ticker.Stop()
-		defer close(ch)
 
 		timeout := time.After(time.Minute)
 		ctx, cancel := context.WithCancel(context.Background())

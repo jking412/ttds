@@ -8,6 +8,7 @@ import (
 
 func init() {
 	defaultConfigFuncList = make([]setDefaultConfigFunc, 0)
+	defaultConfigFuncList = append(defaultConfigFuncList, setEnvConfig)
 	defaultConfigFuncList = append(defaultConfigFuncList, setServerConfig)
 	defaultConfigFuncList = append(defaultConfigFuncList, setDBConfig)
 	defaultConfigFuncList = append(defaultConfigFuncList, setRedisConfig)
@@ -18,6 +19,8 @@ func init() {
 // AppConfig
 // viper使用mapstructure来解析配置文件
 type AppConfig struct {
+	Env string `mapstructure:"env"`
+
 	Server struct {
 		Address string `mapstructure:"address"`
 	} `mapstructure:"server"`

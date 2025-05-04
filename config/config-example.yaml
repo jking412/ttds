@@ -1,6 +1,8 @@
+env: dev # dev, prod
+
 server:
   address: :8080
-database:
+db:
   driver: mysql
   username: root
   password: 123456
@@ -16,6 +18,11 @@ redis:
 
 jwt:
   secret: ttds
-  expires: 240h
-  refresh_secret: ttds_refresh
-  refresh_expires: 720h
+  refresh_secret: ttds-refresh
+  expires: 1m
+  refresh_expires: 24h
+
+log:
+  level: info
+  path: ./logs
+  filename: ttds.log

@@ -50,6 +50,9 @@ type DevRepositoryImpl struct {
 func (r *DevRepositoryImpl) GetTemplateByID(id uint) (*model.ContainerTemplate, error) {
 	// 不管id，直接返回一个测试用的模板
 	return &model.ContainerTemplate{
+		Model: gorm.Model{
+			ID: id,
+		},
 		Name:        "test-container",
 		Description: "测试容器",
 		Image:       "os:test",

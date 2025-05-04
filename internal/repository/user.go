@@ -10,7 +10,7 @@ import (
 
 var (
 	userRepositoryInstance UserRepository
-	once                   sync.Once
+	userSyncOnce           sync.Once
 
 	_ UserRepository = (*UserRepositoryImpl)(nil)
 )
@@ -25,17 +25,17 @@ type UserRepository interface {
 	CheckUserExists(username, email string) (bool, error)
 }
 
-type UserRepositoryImpl struct {
-	DB *gorm.DB
-}
-
 func NewUserRepository(db *gorm.DB) UserRepository {
-	once.Do(func() {
+	userSyncOnce.Do(func() {
 		userRepositoryInstance = &UserRepositoryImpl{
 			DB: db,
 		}
 	})
 	return userRepositoryInstance
+}
+
+type UserRepositoryImpl struct {
+	DB *gorm.DB
 }
 
 // CreateUser 创建一个新的用户

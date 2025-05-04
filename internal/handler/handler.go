@@ -40,6 +40,13 @@ func RegisterRoutes(r *gin.Engine) {
 		courseGroup.GET("/experiment-status", app.GetCourseExperimentStatusHandler)
 	}
 
+	containerGroup := auth.Group("/containers")
+	{
+		containerGroup.POST("/create", app.CreateContainerHandler)
+		containerGroup.GET("/:template_id", app.GetContainerHandler)
+		containerGroup.GET("/:template_id/status", app.GetContainerStatusHandler)
+	}
+
 }
 
 func helloHandler(c *gin.Context) {

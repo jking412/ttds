@@ -12,6 +12,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 	jwtManager := jwt.NewJWTManager()
 
 	return func(c *gin.Context) {
+
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "Authorization header missing"})

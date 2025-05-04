@@ -21,10 +21,6 @@ type CourseRepository interface {
 	GetCourseStatusByCourseID(userID, courseID uint) ([]model.UserSectionStatus, error)
 }
 
-type CourseRepositoryImpl struct {
-	DB *gorm.DB
-}
-
 func NewCourseRepository(db *gorm.DB) CourseRepository {
 	courseSyncOnce.Do(func() {
 		courseRepositoryInstance = &CourseRepositoryImpl{
@@ -32,6 +28,10 @@ func NewCourseRepository(db *gorm.DB) CourseRepository {
 		}
 	})
 	return courseRepositoryInstance
+}
+
+type CourseRepositoryImpl struct {
+	DB *gorm.DB
 }
 
 // GetCourseByID 根据课程 ID 获取课程信息

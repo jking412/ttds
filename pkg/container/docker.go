@@ -200,6 +200,12 @@ func (d *DockerEngine) StartContainer(instance *model.ContainerInstance) error {
 		return fmt.Errorf("failed to start container: %v", err)
 	}
 
+	// set start time
+	instance.StartAt = time.Now()
+
+	// TODO: if not set endtime，repository will return error
+	instance.EndAt = time.Now()
+
 	// 更新容器状态
 	instance.Status = "Running"
 

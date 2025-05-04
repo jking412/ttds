@@ -9,6 +9,6 @@ package configs
 func setJWTConfig(appConfig *AppConfig) {
 	appConfig.JWT.Secret = "ttds"
 	appConfig.JWT.RefreshSecret = "ttds-refresh"
-	appConfig.JWT.Expires = "1m"
+	appConfig.JWT.Expires = "1h"
 	appConfig.JWT.RefreshExpires = "24h"
 }
