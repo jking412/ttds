@@ -194,6 +194,10 @@ func generateRandomToken() string {
 }
 
 func (d *DockerEngine) StartContainer(instance *model.ContainerInstance) error {
+
+	// test code
+	//time.Sleep(time.Second * 15)
+
 	// 启动容器
 	err := d.cli.ContainerStart(context.Background(), instance.ContainerID, container.StartOptions{})
 	if err != nil {

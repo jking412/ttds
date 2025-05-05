@@ -80,7 +80,7 @@ func (c *Client) EnqueueContainerCreateTask(p ContainerCreatePayload) error {
 				}
 				return
 			case <-ticker.C:
-				ch <- fmt.Sprintf("Pending")
+				ch <- fmt.Sprintf(pendingMessage)
 			}
 		}
 	}()

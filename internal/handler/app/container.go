@@ -2,8 +2,8 @@ package app
 
 import (
 	"awesomeProject/internal/usecase"
-	"fmt"
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -63,19 +63,18 @@ func GetContainerStatusHandler(c *gin.Context) {
 	c.Writer.Header().Set("Content-Type", "text/event-stream")
 	c.Writer.Header().Set("Cache-Control", "no-cache")
 	c.Writer.Header().Set("Connection", "keep-alive")
+	c.Writer.Header().Set("Transfer-Encoding", "chunked")
 
-	for {
-		select {
-		case msg, ok := <-channel:
-			if !ok {
-				return
-			}
-			fmt.Fprintf(c.Writer, "%s", msg)
-			c.Writer.Flush()
-		case <-c.Writer.CloseNotify():
-			return
+	c.Stream(func(w io.Writer) bool {
+		if msg, ok := <-channel; ok {
+			// print time and msg
+			//fmt.Printf("%s: %s\n", time.Now().Format("2006-01-02 15:04:05"), msg)
+			c.SSEvent("message", msg)
+			return true
 		}
-	}
+		return false
+	})
+
 }
 
 func GetContainerHandler(c *gin.Context) {

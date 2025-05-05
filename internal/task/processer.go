@@ -96,7 +96,7 @@ func (p *ContainerProcessor) handleContainerCreateTask(ctx context.Context, t *a
 		case <-timeout:
 			return nil
 		case <-ticker.C:
-			ch <- fmt.Sprintf("Running")
+			ch <- fmt.Sprintf(runningMessage)
 		}
 	}
 
