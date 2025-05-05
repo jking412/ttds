@@ -47,6 +47,9 @@ func (p *ContainerProcessor) handleContainerCreateTask(ctx context.Context, t *a
 
 	channelID := fmt.Sprintf("%d:%d", payload.UserID, payload.Template.ID)
 	defer func() {
+		cancel := channelCancel[channelID]
+		cancel()
+		delete(channelCancel, channelID)
 		err := p.messageManager.RemoveChannel(fmt.Sprintf("%d:%d", payload.UserID, payload.Template.ID))
 		if err != nil {
 			logrus.Warnf("messageManager.RemoveChannel failed: %v", err)
@@ -81,7 +84,6 @@ func (p *ContainerProcessor) handleContainerCreateTask(ctx context.Context, t *a
 
 	cancel := channelCancel[channelID]
 	cancel()
-	delete(channelCancel, channelID)
 
 	ticker := time.NewTicker(time.Millisecond * 500)
 	defer ticker.Stop()

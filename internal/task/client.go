@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hibiken/asynq"
+	"github.com/sirupsen/logrus"
 	"sync"
 	"time"
 )
@@ -73,6 +74,10 @@ func (c *Client) EnqueueContainerCreateTask(p ContainerCreatePayload) error {
 			case <-ctx.Done():
 				return
 			case <-timeout:
+				err = c.message.RemoveChannel(channelID)
+				if err != nil {
+					logrus.Errorf("RemoveChannel failed: %v", err)
+				}
 				return
 			case <-ticker.C:
 				ch <- fmt.Sprintf("Pending")
