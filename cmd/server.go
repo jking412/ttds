@@ -35,7 +35,6 @@ var serverCmd = &cobra.Command{
 		}
 
 		// 启动TaskServer和TaskClient
-		// TODO: 存在一个严重的问题，未知原因会导致一个任务被执行多次，需要解决
 		go task.InitTaskServer()
 		client := task.InitTaskClient()
 		defer client.AsynqClient.Close()

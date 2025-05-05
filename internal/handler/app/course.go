@@ -165,8 +165,7 @@ func GetCourseExperimentStatusHandler(c *gin.Context) {
 		return
 	}
 
-	// TODO: 丑陋的判定，需要修改jwt set的user_id类型
-	status, err := courseService.GetCourseStatus(uint(userID.(int)), uint(courseID))
+	status, err := courseService.GetCourseStatus(userID.(uint), uint(courseID))
 	if err != nil {
 		if err.Error() == "record not found" {
 			c.JSON(http.StatusNotFound, gin.H{"status": "error", "message": "Course experiment status not found"})

@@ -45,5 +45,3 @@ func (m *MockCourseRepository) GetCourseStatusByCourseID(userID, courseID uint) 
 	args := m.Called(userID, courseID)
 	return args.Get(0).([]model.UserSectionStatus), args.Error(1)
 }
-
-// TODO: 所有测试存在问题

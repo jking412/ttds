@@ -4,13 +4,38 @@ import (
 	"awesomeProject/internal/model"
 	"awesomeProject/pkg/db"
 	"golang.org/x/crypto/bcrypt"
+	"math/rand"
 	"testing"
 )
 
+func generateUser() *model.User {
+	// 采用随机生成的用户名和密码，避免重复造成的测试失败
+	str := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+	// 生成随机用户名
+	username := ""
+	for i := 0; i < 10; i++ {
+		username += string(str[rand.Intn(len(str))])
+	}
+
+	// 生成随机密码
+	password := ""
+	for i := 0; i < 10; i++ {
+		password += string(str[rand.Intn(len(str))])
+	}
+
+	user := &model.User{
+		Username: username,
+		Password: password,
+		Email:    username + "@example.com",
+	}
+
+	return user
+}
+
 func TestCreateUser(t *testing.T) {
 	// Setup
-	// TODO: 采用随机生成的用户名和密码，避免重复造成的测试失败
-	user := &model.User{Username: "testuser", Password: "password123"}
+	user := generateUser()
 
 	// Execute
 	err := userRepositoryInstance.CreateUser(user)
@@ -29,7 +54,7 @@ func TestCreateUser(t *testing.T) {
 	}
 
 	// Expect error
-	err = userRepositoryInstance.CreateUser(&model.User{Username: "testuser", Password: longPassword})
+	err = userRepositoryInstance.CreateUser(&model.User{Username: user.Username, Password: longPassword})
 	if err == nil {
 		t.Errorf("Expected error, got nil")
 	}
@@ -40,7 +65,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestGetUserByID(t *testing.T) {
 	// Setup
-	user := &model.User{Username: "testuser", Password: "password123"}
+	user := generateUser()
 	userRepositoryInstance.CreateUser(user)
 
 	// Execute
@@ -60,7 +85,7 @@ func TestGetUserByID(t *testing.T) {
 
 func TestGetUserByUsername(t *testing.T) {
 	// Setup
-	user := &model.User{Username: "testuser", Password: "password123"}
+	user := generateUser()
 	userRepositoryInstance.CreateUser(user)
 
 	// Execute
@@ -80,7 +105,7 @@ func TestGetUserByUsername(t *testing.T) {
 
 func TestGetUserByEmail(t *testing.T) {
 	// Setup
-	user := &model.User{Email: "test@example.com", Password: "password123"}
+	user := generateUser()
 	userRepositoryInstance.CreateUser(user)
 
 	// Execute
@@ -114,7 +139,7 @@ func TestVerifyPassword(t *testing.T) {
 
 func TestCheckUserExists(t *testing.T) {
 	// Setup
-	user := &model.User{Username: "testuser", Email: "test@example.com", Password: "password123"}
+	user := generateUser()
 	userRepositoryInstance.CreateUser(user)
 
 	// Execute

@@ -6,6 +6,7 @@ import (
 	"awesomeProject/pkg/db"
 	"awesomeProject/pkg/jwt"
 	"errors"
+	"golang.org/x/crypto/bcrypt"
 	"sync"
 )
 
@@ -52,13 +53,20 @@ func (s *UserServiceImpl) Register(user *model.User) (string, string, error) {
 		return "", "", errors.New("用户名或邮箱已存在")
 	}
 
+	// 对密码进行哈希处理
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", "", err
+	}
+	user.Password = string(hashedPassword)
+
 	// 创建新用户
 	if err := s.UserRepository.CreateUser(user); err != nil {
 		return "", "", err
 	}
 
 	// 生成JWT令牌
-	userID := int(user.ID)
+	userID := uint(user.ID)
 	accessToken, err := s.jwtManager.GenerateAccessToken(userID)
 	if err != nil {
 		return "", "", err
@@ -86,7 +94,7 @@ func (s *UserServiceImpl) Login(username, password string) (string, string, erro
 	}
 
 	// 生成JWT令牌
-	userID := int(user.ID)
+	userID := uint(user.ID)
 	accessToken, err := s.jwtManager.GenerateAccessToken(userID)
 	if err != nil {
 		return "", "", err

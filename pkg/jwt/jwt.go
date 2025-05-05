@@ -28,8 +28,8 @@ const (
 )
 
 type Manager interface {
-	GenerateAccessToken(userID int) (string, error)
-	GenerateRefreshToken(userID int) (string, error)
+	GenerateAccessToken(userID uint) (string, error)
+	GenerateRefreshToken(userID uint) (string, error)
 	ValidateToken(tokenStr string) (*Claims, error)
 	RefreshAccessToken(refreshToken string) (string, error)
 }
@@ -51,7 +51,7 @@ func NewJWTManager() Manager {
 }
 
 // GenerateAccessToken 生成 JWT Token
-func (j *jwtManager) GenerateAccessToken(userID int) (string, error) {
+func (j *jwtManager) GenerateAccessToken(userID uint) (string, error) {
 
 	// 创建自定义的 Claims
 	claims := generateClaims(userID, j.secretExpiry)
@@ -70,7 +70,7 @@ func (j *jwtManager) GenerateAccessToken(userID int) (string, error) {
 }
 
 // GenerateRefreshToken 生成 JWT Token
-func (j *jwtManager) GenerateRefreshToken(userID int) (string, error) {
+func (j *jwtManager) GenerateRefreshToken(userID uint) (string, error) {
 
 	// 创建自定义的 Claims
 	claims := generateClaims(userID, j.refreshExpiry)

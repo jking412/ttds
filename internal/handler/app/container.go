@@ -25,7 +25,7 @@ func CreateContainerHandler(c *gin.Context) {
 		return
 	}
 
-	err = usecase.NewContainerService().CreateContainer(uint(userID.(int)), uint(templateID))
+	err = usecase.NewContainerService().CreateContainer(userID.(uint), uint(templateID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -49,7 +49,7 @@ func GetContainerStatusHandler(c *gin.Context) {
 		return
 	}
 
-	channel, err := usecase.NewContainerService().GetChannel(uint(userID.(int)), uint(templateID))
+	channel, err := usecase.NewContainerService().GetChannel(userID.(uint), uint(templateID))
 	if err != nil {
 		// 如果是不存在，而不是错误，则返回一个写入Running的channel，目前不判断，直接视为不存在而不是错误
 		channel = make(chan string, 100)
@@ -93,7 +93,7 @@ func GetContainerHandler(c *gin.Context) {
 		return
 	}
 
-	container, err := usecase.NewContainerService().GetContainer(uint(userID.(int)), uint(templateID))
+	container, err := usecase.NewContainerService().GetContainer(userID.(uint), uint(templateID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

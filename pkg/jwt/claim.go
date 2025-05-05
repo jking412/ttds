@@ -6,11 +6,11 @@ import (
 )
 
 type Claims struct {
-	UserID int `json:"user_id"`
+	UserID uint `json:"user_id"`
 	jwt.RegisteredClaims
 }
 
-func generateClaims(userID int, expires time.Duration) *Claims {
+func generateClaims(userID uint, expires time.Duration) *Claims {
 	return &Claims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{

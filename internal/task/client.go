@@ -11,8 +11,7 @@ import (
 	"time"
 )
 
-// TODO: 修改所有的once，加上once的名称
-var once sync.Once
+var clientSyncOnce sync.Once
 var client *Client
 var channelCancel map[string]context.CancelFunc
 
@@ -31,7 +30,7 @@ func InitTaskClient() *Client {
 }
 
 func newTaskClient(redisAddr string) *Client {
-	once.Do(func() {
+	clientSyncOnce.Do(func() {
 		channelCancel = make(map[string]context.CancelFunc)
 		asynqClient := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
 		client = &Client{
