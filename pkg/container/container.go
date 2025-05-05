@@ -8,7 +8,7 @@ type Manager interface {
 	StopContainer(instance *model.ContainerInstance) error
 	RemoveContainer(instance *model.ContainerInstance) error
 	Exists(containerName string) (bool, error)
-	ExecCommand(instance *model.ContainerInstance, script *model.ContainerScript) error
+	ExecCommand(instance *model.ContainerInstance, script *model.ContainerScript) (bool, error)
 }
 
 func NewManager() Manager {

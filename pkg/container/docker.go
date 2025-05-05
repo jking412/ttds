@@ -286,18 +286,16 @@ func (d *DockerEngine) Exists(containerName string) (bool, error) {
 	return len(containers) > 0, nil
 }
 
-func (d *DockerEngine) ExecCommand(instance *model.ContainerInstance, script *model.ContainerScript) error {
+func (d *DockerEngine) ExecCommand(instance *model.ContainerInstance, script *model.ContainerScript) (bool, error) {
 	// 创建执行配置
 	execConfig := container.ExecOptions{
-		Cmd:          []string{"/bin/sh", "-c", script.Content},
-		AttachStdout: true,
-		AttachStderr: true,
+		Cmd: []string{"/bin/sh", "-c", script.Content},
 	}
 
 	// 创建执行实例
 	execID, err := d.cli.ContainerExecCreate(context.Background(), instance.ContainerID, execConfig)
 	if err != nil {
-		return fmt.Errorf("failed to create exec instance: %v", err)
+		return false, fmt.Errorf("failed to create exec instance: %v", err)
 	}
 
 	// 启动执行实例
@@ -305,7 +303,7 @@ func (d *DockerEngine) ExecCommand(instance *model.ContainerInstance, script *mo
 		Detach: true,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to start exec instance: %v", err)
+		return false, fmt.Errorf("failed to start exec instance: %v", err)
 	}
 
 	// 设置整体超时
@@ -318,19 +316,19 @@ func (d *DockerEngine) ExecCommand(instance *model.ContainerInstance, script *mo
 	for {
 		select {
 		case <-deadline:
-			return fmt.Errorf("execution timeout after %s", timeout)
+			return false, fmt.Errorf("execution timeout after %s", timeout)
 		case <-tick.C:
 			inspect, err := d.cli.ContainerExecInspect(context.Background(), execID.ID)
 			if err != nil {
-				return fmt.Errorf("failed to inspect exec instance: %v", err)
+				return false, fmt.Errorf("failed to inspect exec instance: %v", err)
 			}
 
 			if !inspect.Running {
 				// 脚本执行完成
 				if inspect.ExitCode != 0 {
-					return fmt.Errorf("script failed with exit code %d", inspect.ExitCode)
+					return false, fmt.Errorf("script failed with exit code %d", inspect.ExitCode)
 				}
-				return nil
+				return true, nil
 			}
 		}
 	}

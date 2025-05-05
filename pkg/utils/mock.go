@@ -97,53 +97,6 @@ func MockCourseData() {
 	logrus.Info("mock data inserted successfully")
 }
 
-// Mock data generators for each table
-
-func mockCourses() map[string]interface{} {
-	return map[string]interface{}{
-		"title":       randomString(10, 255),
-		"description": randomText(50, 500),
-		"cover_image": fmt.Sprintf("images/%s.jpg", randomString(5, 50)),
-		"category":    randomString(5, 100),
-	}
-}
-
-func mockChapters(courseID uint64) map[string]interface{} {
-	return map[string]interface{}{
-		"title":       randomString(10, 255),
-		"description": randomText(50, 500),
-		"order":       rand.Uint64(),
-		"course_id":   courseID,
-	}
-}
-
-func mockSections(chapterID uint64) map[string]interface{} {
-	return map[string]interface{}{
-		"title":      randomString(10, 255),
-		"content":    randomText(100, 2000),
-		"order":      rand.Uint64(),
-		"chapter_id": chapterID,
-	}
-}
-
-func mockCourseReferences(courseID uint64) map[string]interface{} {
-	return map[string]interface{}{
-		"course_id":   courseID,
-		"title":       randomString(10, 255),
-		"type":        randomReferenceType(),
-		"url":         fmt.Sprintf("https://example.com/%s", randomString(5, 500)),
-		"description": randomText(50, 500),
-	}
-}
-
-func mockCourseReferenceBooks(courseID uint64) map[string]interface{} {
-	return map[string]interface{}{
-		"course_id":  courseID,
-		"book_title": randomString(10, 255),
-		"author":     randomString(5, 255),
-	}
-}
-
 // Helper functions
 
 func randomString(minLen, maxLen int) string {

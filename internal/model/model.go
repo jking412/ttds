@@ -80,6 +80,9 @@ type ContainerTemplate struct {
 	SUDOPass    string `gorm:"type:varchar(255)"`          // SUDO密码（如果有的话）
 }
 
+// TODO: Instance 和 Script模型中的SectionID或者TemplateID只需要保留一个
+// 由于历史代码问题，目前选择和TemplateID保持一致，后续可以修改
+
 // ContainerInstance 容器实例模型
 type ContainerInstance struct {
 	gorm.Model
@@ -99,6 +102,8 @@ type ContainerInstance struct {
 type ContainerScript struct {
 	gorm.Model
 	SectionID      uint   `gorm:"not null;index"`            // 关联的小节ID（在哪一节要检测）
+	TemplateID     uint   `gorm:"not null;index"`            // 使用的模板ID
+	Order          uint   `gorm:"not null"`                  // 脚本执行顺序，每一个脚本是一个测试点
 	Content        string `gorm:"type:text;not null"`        // 脚本内容
 	ExpectedOutput string `gorm:"type:text"`                 // 期望输出，比如包含某个文件
 	MatchType      string `gorm:"type:varchar(50);not null"` // 匹配方式：contains / equals / regex

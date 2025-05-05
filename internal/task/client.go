@@ -54,8 +54,8 @@ func (c *Client) EnqueueContainerCreateTask(p ContainerCreatePayload) error {
 		return err
 	}
 
-	channelID := fmt.Sprintf("%d:%d", p.UserID, p.Template.ID)
-	// TODO: 考虑ch的泄露问题
+	channelID := ContainerCreateChannelName(p.UserID, p.Template.ID)
+
 	ch, err := c.message.CreateChannel(channelID)
 	if err != nil {
 		return err
@@ -84,6 +84,21 @@ func (c *Client) EnqueueContainerCreateTask(p ContainerCreatePayload) error {
 			}
 		}
 	}()
+
+	return nil
+}
+
+func (c *Client) EnqueueContainerExecTask(p ContainerExecPayload) error {
+	payload, err := json.Marshal(p)
+	if err != nil {
+		return err
+	}
+
+	task := asynq.NewTask(TypeContainerExec, payload)
+	_, err = c.AsynqClient.Enqueue(task, asynq.MaxRetry(1), asynq.Queue("default"))
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

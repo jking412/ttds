@@ -36,6 +36,7 @@ func newContainerProcessor() *ContainerProcessor {
 
 func (p *ContainerProcessor) Register(mux *asynq.ServeMux) {
 	mux.HandleFunc(TypeContainerCreate, p.handleContainerCreateTask)
+	mux.HandleFunc(TypeContainerExec, p.handleContainerExecTask)
 }
 
 func (p *ContainerProcessor) handleContainerCreateTask(ctx context.Context, t *asynq.Task) error {
@@ -45,12 +46,12 @@ func (p *ContainerProcessor) handleContainerCreateTask(ctx context.Context, t *a
 		return err
 	}
 
-	channelID := fmt.Sprintf("%d:%d", payload.UserID, payload.Template.ID)
+	channelID := ContainerCreateChannelName(payload.UserID, payload.Template.ID)
 	defer func() {
 		cancel := channelCancel[channelID]
 		cancel()
 		delete(channelCancel, channelID)
-		err := p.messageManager.RemoveChannel(fmt.Sprintf("%d:%d", payload.UserID, payload.Template.ID))
+		err := p.messageManager.RemoveChannel(channelID)
 		if err != nil {
 			logrus.Warnf("messageManager.RemoveChannel failed: %v", err)
 		}
@@ -100,4 +101,38 @@ func (p *ContainerProcessor) handleContainerCreateTask(ctx context.Context, t *a
 		}
 	}
 
+}
+
+func (p *ContainerProcessor) handleContainerExecTask(ctx context.Context, t *asynq.Task) error {
+	var payload ContainerExecPayload
+	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
+		return err
+	}
+
+	channelID := ContainerExecChannelName(payload.UserID, payload.TemplateID)
+	ch, err := p.messageManager.CreateChannel(channelID)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		err = p.messageManager.RemoveChannel(channelID)
+		if err != nil {
+			logrus.Warnf("messageManager.RemoveChannel failed: %v", err)
+		}
+	}()
+
+	for order, script := range payload.Scripts {
+		ok, err := p.containerManager.ExecCommand(&payload.Instance, &script)
+		if err != nil {
+			logrus.Warnf("containerManager.ExecCommand failed: %d,%v", order, err)
+		}
+		if !ok {
+			ch <- fmt.Sprintf(failMessage)
+		} else {
+			ch <- fmt.Sprintf(passMessage)
+		}
+	}
+
+	return nil
 }

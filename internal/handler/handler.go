@@ -43,6 +43,7 @@ func RegisterRoutes(r *gin.Engine) {
 	containerGroup := auth.Group("/containers")
 	{
 		containerGroup.POST("/create", app.CreateContainerHandler)
+		containerGroup.GET("/:template_id/check", app.CheckContainerHandler)
 		containerGroup.GET("/:template_id", app.GetContainerHandler)
 		containerGroup.GET("/:template_id/status", app.GetContainerStatusHandler)
 	}

@@ -29,6 +29,8 @@ func InitLog() {
 		logrus.SetLevel(logrus.InfoLevel)
 	}
 
+	logrus.SetReportCaller(true)
+
 	// 设置日志格式（比如使用 JSON 格式）
 	logrus.SetFormatter(&logrus.TextFormatter{})
 
