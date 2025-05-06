@@ -2,7 +2,6 @@ package repository
 
 import (
 	"awesomeProject/internal/model"
-	"awesomeProject/pkg/configs"
 	"gorm.io/gorm"
 	"sync"
 )
@@ -20,14 +19,8 @@ type ContainerScript interface {
 
 func NewContainerScript(db *gorm.DB) ContainerScript {
 	scriptSyncOnce.Do(func() {
-		if configs.GetConfig().Env == "dev" {
-			scriptRepositoryInstance = &DevScriptRepositoryImpl{
-				DB: db,
-			}
-		} else {
-			scriptRepositoryInstance = &ContainerScriptImpl{
-				DB: db,
-			}
+		scriptRepositoryInstance = &ContainerScriptImpl{
+			DB: db,
 		}
 	})
 	return scriptRepositoryInstance
@@ -41,7 +34,7 @@ func (r *ContainerScriptImpl) GetScriptsByTemplateID(templateID uint) ([]*model.
 	var scripts []*model.ContainerScript
 	// 根据order升序排序
 	// 从数据库中获取脚本
-	result := r.DB.Where("template_id =?", templateID).Order("order ASC").Find(&scripts)
+	result := r.DB.Where("template_id =?", templateID).Order("`order` ASC").Find(&scripts)
 	return scripts, result.Error
 }
 

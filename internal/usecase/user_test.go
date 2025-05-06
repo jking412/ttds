@@ -56,12 +56,12 @@ type MockJWTGenerator struct {
 //	RefreshAccessToken(refreshToken string) (string, error)
 //}
 
-func (m *MockJWTGenerator) GenerateAccessToken(userID int) (string, error) {
+func (m *MockJWTGenerator) GenerateAccessToken(userID uint) (string, error) {
 	args := m.Called(userID)
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockJWTGenerator) GenerateRefreshToken(userID int) (string, error) {
+func (m *MockJWTGenerator) GenerateRefreshToken(userID uint) (string, error) {
 	args := m.Called(userID)
 	return args.String(0), args.Error(1)
 }

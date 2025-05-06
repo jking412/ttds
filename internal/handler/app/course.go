@@ -137,7 +137,7 @@ func GetCourseReferencesHandler(c *gin.Context) {
 }
 
 func GetCourseReferenceDownloadURLHandler(c *gin.Context) {
-	referenceIDStr := c.Param("reference_id")
+	referenceIDStr := c.Query("reference_id")
 	referenceID, err := strconv.ParseUint(referenceIDStr, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Invalid reference ID format"})
@@ -150,12 +150,12 @@ func GetCourseReferenceDownloadURLHandler(c *gin.Context) {
 		if err.Error() == "record not found" { // Basic check, improve if possible
 			c.JSON(http.StatusNotFound, gin.H{"status": "error", "message": "Reference book not found"})
 		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"status": "success",
-			"data":   downloadURL,
-		})
 	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"data":   downloadURL,
+	})
 }
 
 // GetCourseExperimentStatusHandler handles the request to get user's course experiment status.

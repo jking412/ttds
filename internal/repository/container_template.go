@@ -2,7 +2,6 @@ package repository
 
 import (
 	"awesomeProject/internal/model"
-	"awesomeProject/pkg/configs"
 	"gorm.io/gorm"
 	"sync"
 )
@@ -20,14 +19,8 @@ type TemplateRepository interface {
 
 func NewTemplateRepository(db *gorm.DB) TemplateRepository {
 	templateSyncOnce.Do(func() {
-		if configs.GetConfig().Env == "dev" {
-			templateRepositoryInstance = &DevRepositoryImpl{
-				DB: db,
-			}
-		} else {
-			templateRepositoryInstance = &TemplateRepositoryImpl{
-				DB: db,
-			}
+		templateRepositoryInstance = &TemplateRepositoryImpl{
+			DB: db,
 		}
 	})
 	return templateRepositoryInstance

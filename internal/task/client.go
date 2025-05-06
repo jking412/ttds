@@ -49,7 +49,7 @@ func (c *Client) EnqueueContainerCreateTask(p ContainerCreatePayload) error {
 	}
 
 	task := asynq.NewTask(TypeContainerCreate, payload)
-	_, err = c.AsynqClient.Enqueue(task, asynq.MaxRetry(1), asynq.Queue("default"))
+	_, err = c.AsynqClient.Enqueue(task, asynq.MaxRetry(0), asynq.Queue("default"))
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func (c *Client) EnqueueContainerExecTask(p ContainerExecPayload) error {
 	}
 
 	task := asynq.NewTask(TypeContainerExec, payload)
-	_, err = c.AsynqClient.Enqueue(task, asynq.MaxRetry(1), asynq.Queue("default"))
+	_, err = c.AsynqClient.Enqueue(task, asynq.MaxRetry(0), asynq.Queue("default"))
 	if err != nil {
 		return err
 	}

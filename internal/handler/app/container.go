@@ -100,7 +100,8 @@ func GetContainerHandler(c *gin.Context) {
 		return
 	}
 
-	accessUrl := fmt.Sprintf("http://%s:3000/?tkn=%s", container.IPAddress, container.Token)
+	// TODO: 不具备拓展性，等待完善
+	accessUrl := fmt.Sprintf("http://127.0.0.1:3001/?tkn=%s", container.Token)
 
 	c.JSON(http.StatusOK, gin.H{
 		"container": container,

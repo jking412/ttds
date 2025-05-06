@@ -17,7 +17,7 @@ var mockCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		//if forceMock {
 		logrus.Info("force generating mock data")
-		utils.MockCourseData()
+		utils.InitDBData()
 		//} else {
 		//	logrus.Info("mock data generation skipped (use --force to enable)")
 		//}
