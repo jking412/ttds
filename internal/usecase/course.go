@@ -4,6 +4,7 @@ import (
 	"awesomeProject/internal/model"
 	"awesomeProject/internal/repository"
 	"awesomeProject/pkg/db"
+	"awesomeProject/pkg/oss"
 	"context"
 	"encoding/json"
 	"errors"
@@ -23,6 +24,7 @@ type CourseService interface {
 	GetAllCourses() ([]model.Course, error)
 	GetCourseByID(id uint) (*model.Course, error)
 	GetCourseReferences(courseID uint) ([]model.CourseReference, error)
+	GetCourseReferencesDownloadURL(referenceID uint) (string, error)
 	GetCourseStatus(userID, courseID uint) ([]model.UserSectionStatus, error)
 }
 
@@ -30,6 +32,7 @@ type CourseService interface {
 type CourseServiceImpl struct {
 	CourseRepository repository.CourseRepository
 	cache            db.Cache
+	ossManager       oss.Manager
 }
 
 func NewCourseService() CourseService {
@@ -37,6 +40,7 @@ func NewCourseService() CourseService {
 		courseServiceInstance = &CourseServiceImpl{
 			CourseRepository: repository.NewCourseRepository(db.DB),
 			cache:            db.NewCache(),
+			ossManager:       oss.NewOssClient(),
 		}
 	})
 	return courseServiceInstance
@@ -92,4 +96,21 @@ func (s *CourseServiceImpl) GetCourseReferences(courseID uint) ([]model.CourseRe
 		return nil, err
 	}
 	return references, nil
+}
+
+func (s *CourseServiceImpl) GetCourseReferencesDownloadURL(referenceID uint) (string, error) {
+	reference, err := s.CourseRepository.GetCourseReferenceByID(referenceID)
+	if err != nil {
+		return "", err
+	}
+
+	defaultExpiredTime := 10 * time.Minute
+
+	// 生成预签名URL
+	downloadURL, err := s.ossManager.GetObjectUrl(reference.Title, int64(defaultExpiredTime/time.Second))
+	if err != nil {
+		return "", err
+	}
+
+	return downloadURL, nil
 }

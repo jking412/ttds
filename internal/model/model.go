@@ -62,8 +62,7 @@ type CourseReference struct {
 	gorm.Model
 	CourseID    uint   `gorm:"not null;index"`             // 关联的课程ID
 	Title       string `gorm:"type:varchar(255);not null"` // 资料标题
-	Type        string `gorm:"type:varchar(50);not null"`  // 资料类型，例如：pdf、link、video
-	URL         string `gorm:"type:varchar(500);not null"` // 资料链接或存储路径
+	Type        string `gorm:"type:varchar(50);not null"`  // 资料类型，例如：book/website/pdf
 	Description string `gorm:"type:text"`                  // 资料描述，解释资料用途，可选
 }
 

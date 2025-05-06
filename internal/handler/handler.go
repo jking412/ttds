@@ -38,6 +38,7 @@ func RegisterRoutes(r *gin.Engine) {
 		courseGroup.GET("/:course_id", app.GetCourseByIDHandler)                  // 获取特定课程信息
 		courseGroup.GET("/:course_id/references", app.GetCourseReferencesHandler) // 获取课程参考书
 		courseGroup.GET("/experiment-status", app.GetCourseExperimentStatusHandler)
+		courseGroup.GET("/references/:reference_id/download", app.GetCourseReferenceDownloadURLHandler)
 	}
 
 	containerGroup := auth.Group("/containers")

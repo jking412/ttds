@@ -56,6 +56,6 @@ func (r *DevRepositoryImpl) GetTemplateByID(id uint) (*model.ContainerTemplate, 
 		Name:        "test-container",
 		Description: "测试容器",
 		Image:       "os:test",
-		//Ports:       "3001:3000",
+		Ports:       "3001:3000",
 	}, nil
 }

@@ -18,6 +18,7 @@ type CourseRepository interface {
 	GetCourseByID(id uint) (*model.Course, error)
 	GetAllCourses() ([]model.Course, error)
 	GetCourseReferencesByCourseID(courseID uint) ([]model.CourseReference, error)
+	GetCourseReferenceByID(referenceID uint) (model.CourseReference, error)
 	GetCourseStatusByCourseID(userID, courseID uint) ([]model.UserSectionStatus, error)
 }
 
@@ -53,6 +54,13 @@ func (r *CourseRepositoryImpl) GetCourseReferencesByCourseID(courseID uint) ([]m
 	var references []model.CourseReference
 	result := r.DB.Where("course_id = ?", courseID).Find(&references)
 	return references, result.Error
+}
+
+// GetCourseReferenceByID 根据参考资料 ID 获取参考资料信息
+func (r *CourseRepositoryImpl) GetCourseReferenceByID(referenceID uint) (model.CourseReference, error) {
+	var reference model.CourseReference
+	result := r.DB.First(&reference, referenceID)
+	return reference, result.Error
 }
 
 // GetCourseStatusByCourseID 根据课程ID获取用户学习状态
